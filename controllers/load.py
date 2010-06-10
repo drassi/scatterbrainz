@@ -28,37 +28,46 @@ def getid3prop(mutagen, prop):
 class LoadController(BaseController):
 
     def load(self):
-
-        done = False
         now = datetime.now()
         numFilesSeen = 0
         numBadFiles = 0
         numSketchy = 0
-        commitbuffer = []
         albums = {}
         artists = {}
         
-        variousArtists = Artist(name='Various Artists',
-                                mbid='89ad4ac3-39f7-470e-963a-56509c546377',
-                                added=now)
+        variousArtists = Session.query(Artist).filter_by(mbid='89ad4ac3-39f7-470e-963a-56509c546377').first()
+        if variousArtists is None:
+            variousArtists = Artist(name='Various Artists',
+                                    mbid='89ad4ac3-39f7-470e-963a-56509c546377',
+                                    added=now)
+            Session.save(variousArtists)
         artists['Various Artists'] = variousArtists
-        Session.save(variousArtists)
+
+        initialLoad = Session.query(Track).count() == 0
         
         for dirname, dirnames, filenames in os.walk('scatterbrainz/public/.music/'):
             localAlbums = {}
             for filename in filenames:
                 try:
+
+                    # get path and check if we've already seen file
+                    filepath = os.path.join(os.path.relpath(dirname, 'scatterbrainz/public/.music/'), filename).decode('utf-8')
+                    if not initialLoad:
+                        if Session.query(Track).filter_by(filepath=filepath).count() != 0:
+                            continue
+                        else:
+                            log.info('Found new track ' + filepath)
+                            
                     numFilesSeen = numFilesSeen + 1
                     
-                    # get path, size, date
+                    # get size, date
                     fileabspath = os.path.join(dirname,filename)
-                    filepath = os.path.join(os.path.relpath(dirname, 'scatterbrainz/public/.music/'), filename)
                     filesize = os.path.getsize(fileabspath)
                     filemtime = datetime.fromtimestamp(os.path.getmtime(fileabspath))
-                    
+                     
                     ext = os.path.splitext(filename)[-1]
-                    if not ext == '.mp3': continue
-  
+                    if not ext == '.mp3' and not ext == '.MP3': continue
+
                     # mp3 length, bitrate, etc.
                     mutagen = MP3(fileabspath, ID3=EasyID3)
                     info = mutagen.info
@@ -66,7 +75,7 @@ class LoadController(BaseController):
                     mp3samplerate = info.sample_rate
                     mp3length = int(round(info.length))
                     if info.sketchy:
-                        mp3['sketchy'] = true
+                        mp3['sketchy'] = True
                         numSketchy = numSketchy + 1
                         log.warn('sketchy MP3: ' + filename)
 
@@ -96,10 +105,17 @@ class LoadController(BaseController):
                     elif id3artist in artists:
                         artist = artists[id3artist]
                     else:
-                        artist = Artist(name=id3artist,
-                                        mbid=None,
-                                        added=now)
-                        Session.save(artist)
+                        if initialLoad:
+                            artistFromDb = None
+                        else:
+                            artistFromDb = Session.query(Artist).filter_by(name=id3artist).first()
+                        if artistFromDb is None:
+                            artist = Artist(name=id3artist,
+                                             mbid=None,
+                                             added=now)
+                            Session.save(artist)
+                        else:
+                            artist = artistFromDb
                         artists[id3artist] = artist
                     
                     if not id3album:
@@ -118,7 +134,7 @@ class LoadController(BaseController):
                     
                     track = Track(artist=artist,
                                   album=album,
-                                  filepath=filepath.decode('utf-8'),
+                                  filepath=filepath,
                                   filesize=filesize,
                                   filemtime=filemtime,
                                   mp3bitrate=mp3bitrate,
@@ -137,23 +153,11 @@ class LoadController(BaseController):
                                   )
                     
                     Session.save(track)
-
-                    triple = RDFTriple(subject = u":track",
-                                   predicate = u"ison",
-                                   obj=u":album",
-                                   artist=None,
-                                   track=track,
-                                   album=album)
-                    
-                    Session.save(triple)
                 
                 except Exception as e:
                     numBadFiles = numBadFiles + 1
                     log.error('Could not load file "' + filename + '" due to exception: '
                               + e.__class__.__name__ + ': ' + str(e))
-            if done:
-                break
-        Session.commit()
         otherNow = datetime.now()
 
         return """Saw %(numFilesSeen)d tracks, %(numArtists)d artists and %(numAlbums)d albums.
@@ -161,3 +165,4 @@ class LoadController(BaseController):
                % {'numFilesSeen':numFilesSeen, 'numBadFiles':numBadFiles,
                   'numArtists': len(artists), 'numAlbums': len(albums),
                   'numSketchy' : numSketchy, 'time' : str(otherNow - now)}
+

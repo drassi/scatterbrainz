@@ -46,7 +46,7 @@ tr td:last-child {
 #playlistURcorner {
     float: right;
     width: 18px;
-    height: 20px;
+    height: 18px;
     background-color: #B0CDFF;
     border-top-right-radius: 10px;
 }
