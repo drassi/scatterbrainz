@@ -1,7 +1,9 @@
 import os
 import re
 import time
+import string
 import urllib
+import random as rand
 import simplejson
 import htmlentitydefs
 
@@ -209,7 +211,10 @@ class HelloController(BaseController):
 
             url = site + '/covers.php?%s' % urllib.urlencode(params)
             
-            html = urllib.urlopen(url).read()
+            captcha = ''.join(rand.choice(string.ascii_uppercase) for x in range(6))
+            postdata = urllib.urlencode({'captcha':captcha,'captchavalue':captcha})
+            
+            html = urllib.urlopen(url,postdata).read()
             
             search = re.search('src="/phputil/scale_image.php\?size=150&amp;src=(?P<src>.*?)"',html)
             
