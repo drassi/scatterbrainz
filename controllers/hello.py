@@ -127,8 +127,7 @@ class HelloController(BaseController):
         search = request.params['search']
         maxResults = 50
         artists = Session.query(Artist). \
-                          filter(Artist.name.like('%'+search+'%')). \
-                          join(Album) \
+                          filter(Artist.name.like('%'+search+'%')) \
                           [0:maxResults]
         albums = Session.query(Album). \
                          filter(Album.name.like('%'+search+'%')) \
@@ -147,28 +146,47 @@ class HelloController(BaseController):
                 artistJSON = artist.toTreeJSON()
                 artistIdToJSON[artist.id] = artistJSON
         for album in albums:
-            if album.artist and album.artist.id not in artistIdToJSON:
-                artistJSON = album.artist.toTreeJSON(children=[])
-                artistIdToJSON[album.artist.id] = artistJSON
-                albumJSON = album.toTreeJSON()
-                artistJSON['children'].append(albumJSON)
-            else:
-                continue
+            if album.artist:
+                if album.artist.id not in artistIdToJSON:
+                    artistJSON = album.artist.toTreeJSON(children=[])
+                    artistIdToJSON[album.artist.id] = artistJSON
+                    albumJSON = album.toTreeJSON()
+                    artistJSON['children'].append(albumJSON)
+                    albumsIdToJSON[album.id] = albumJSON
+                elif 'children' in artistIdToJSON[album.artist.id]:
+                    albumJSON = album.toTreeJSON()
+                    artistIdToJSON[album.artist.id]['children'].append(albumJSON)
+                    albumsIdToJSON[album.id] = albumJSON
+                else:
+                    continue
         for track in tracks:
-            if track.album and \
-               track.album.artist and \
-               track.album.artist.id not in artistIdToJSON:
-                artistJSON = track.album.artist.toTreeJSON(children=[])
-                artistIdToJSON[track.album.artist.id] = artistJSON
-            else:
-                continue
-            if track.album and track.album.id not in albumsIdToJSON:
-                albumJSON = track.album.toTreeJSON(children=[])
-                artistJSON['children'].append(albumJSON)
-                albumsIdToJSON[track.album.id] = albumJSON
-            else:
-                continue
-            albumJSON['children'].append(track.toTreeJSON())
+            if track.album and track.album.artist:
+                if track.album.artist.id not in artistIdToJSON:
+                    # artist not yet in search results, add artist, album, track
+                    artistJSON = track.album.artist.toTreeJSON(children=[])
+                    artistIdToJSON[track.album.artist.id] = artistJSON
+                    albumJSON = track.album.toTreeJSON(children=[])
+                    albumsIdToJSON[track.album.id] = albumJSON
+                    artistJSON['children'].append(albumJSON)
+                    albumJSON['children'].append(track.toTreeJSON())
+                else:
+                    if 'children' in artistIdToJSON[track.album.artist.id]:
+                        if track.album.id not in albumsIdToJSON:
+                            # album not yet in search results, add album, track
+                            albumJSON = track.album.toTreeJSON(children=[])
+                            albumsIdToJSON[track.album.id] = albumJSON
+                            artistIdToJSON[track.album.artist.id]['children'].append(albumJSON)
+                            albumJSON['children'].append(track.toTreeJSON())
+                        else:
+                            if 'children' in albumsIdToJSON[track.album.id]:
+                                # other tracks on this album in search results
+                                albumsIdToJSON[track.album.id]['children'].append(track.toTreeJSON())
+                            else:
+                                # album itself matched search results, don't add child tracks
+                                continue
+                    else:
+                        # artist itself matched search results, don't add child tracks
+                        continue
         json = artistIdToJSON.values()
         json.sort(self._compareTreeFloatVA)
         return simplejson.dumps(json)
