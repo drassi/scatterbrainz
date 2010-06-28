@@ -1,5 +1,7 @@
 $(document).ready(function(){
 
+    $.ajaxSetup({ cache: false });
+
     /**
         * tablesorter and jquery UI sortable BS
         */

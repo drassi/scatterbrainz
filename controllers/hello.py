@@ -201,6 +201,24 @@ class HelloController(BaseController):
     
     def debug(self):
         raise Exception
+    
+    def clearAlbumArt(self):
+        id = request.params['id']
+        Session.begin()
+        album = Session.query(Album).filter_by(id=id).one()
+        album.albumArtFilename = None
+        album.lastHitAlbumArtExchange = None
+        Session.commit()
+        return 'Cleared album art for ' + album.artist.name + ' - ' + album.name
+    
+    def setAlbumArt(self):
+        id = request.params['id']
+        url = request.params['url']
+        Session.begin()
+        album = Session.query(Album).filter_by(id=id).one()
+        album.albumArtFilename = self._fetchAlbumArt(album.artist.name, album.name, url)
+        Session.commit()
+        return 'Set album art for ' + album.artist.name + ' - ' + album.name + ' to ' + url + ', saved to ' + album.albumArtFilename
 
     def getAlbumArtAJAX(self):
         trackid = request.params['trackid'].split('_')[1]
@@ -232,25 +250,32 @@ class HelloController(BaseController):
             captcha = ''.join(rand.choice(string.ascii_uppercase) for x in range(6))
             postdata = urllib.urlencode({'captcha':captcha,'captchavalue':captcha})
             
+            log.info('[art] Hitting ' + url + ' with captcha ' + captcha)
             html = urllib.urlopen(url,postdata).read()
             
             search = re.search('src="/phputil/scale_image.php\?size=150&amp;src=(?P<src>.*?)"',html)
             
             if search:
                 image = site + urllib.unquote(search.group('src'))
-                extension = image.rsplit('.', 1)[1]
-                delchars = ''.join(c for c in map(chr, range(256)) if not c.isalnum())
-                delchars = delchars.translate(None," ()'&!-+_.")
-                filename = (artist + ' - ' + album).encode('utf-8').translate(None, delchars) + '.' + extension
-                urllib.urlretrieve(image, 'scatterbrainz/public/art/' + filename)
-                albumArt = '/art/' + filename
-                track.album.albumArtFilename = albumArt
+                track.album.albumArtFilename = self._fetchAlbumArt(artist, album, image)
+            else:
+                log.info('[art] No results found')
             Session.begin()
             Session.commit()
         json = {}
         if track.album.albumArtFilename:
             json['albumArtURL'] = track.album.albumArtFilename
         return simplejson.dumps(json)
+        
+    def _fetchAlbumArt(self, artist, album, url):
+        extension = url.rsplit('.', 1)[1]
+        delchars = ''.join(c for c in map(chr, range(256)) if not c.isalnum())
+        delchars = delchars.translate(None," ()'&!-+_.")
+        filename = (artist + ' - ' + album).encode('utf-8').translate(None, delchars) + '.' + extension
+        filepath = 'scatterbrainz/public/art/' + filename
+        log.info('[art] Saving ' + url + ' to ' + filepath)
+        urllib.urlretrieve(url, filepath)
+        return unicode('/art/' + filename)
 
     def getLyricsAJAX(self):
         trackid = request.params['trackid'].split('_')[1]
@@ -271,15 +296,19 @@ class HelloController(BaseController):
             
             url = 'http://lyrics.wikia.com/api.php?%s' % urllib.urlencode(params)
             
+            log.info('[lyric] Hitting ' + url)
             html = urllib.urlopen(url).read()
             
             if not "'lyrics':'Not found'" in html:
                 search = re.search("'url':'(?P<url>.*?)'",html)
                 lyricurl = urllib.unquote(search.group('url'))
+                log.info('[lyric] Hitting ' + lyricurl)
                 lyrichtml = urllib.urlopen(lyricurl).read()
                 lyrics = re.search("<div class='lyricbox'>.*?</div>(?P<lyrics>.*?)<!-- \n", lyrichtml).group('lyrics')
                 lyrics = unescape(lyrics)
                 track.lyrics = lyrics
+            else:
+                log.info('[lyric] No results found')
             Session.begin()
             Session.commit()
         json = {}
