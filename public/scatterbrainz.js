@@ -360,6 +360,19 @@ $(document).ready(function(){
         });
         $(window).resize();
     }, 100);
+    
+    // Detect an overrun VBR
+    setInterval(function() {
+        var t = $('.playing .length');
+        if (t.length > 0) {
+            sp = t.text().split(':');
+            var m = Number(sp[0]);
+            var s = Number(sp[1]);
+            if (audio.currentTime > 60*m + s) {
+                playListNext();
+            }
+        }
+    }, 5000);
 });
 
 function windowResize(target) {
