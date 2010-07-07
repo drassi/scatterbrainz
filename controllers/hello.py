@@ -3,6 +3,7 @@ import re
 import time
 import string
 import urllib
+import urllib2
 import random as rand
 import simplejson
 import htmlentitydefs
@@ -247,11 +248,24 @@ class HelloController(BaseController):
 
             url = site + '/covers.php?%s' % urllib.urlencode(params)
             
-            captcha = ''.join(rand.choice(string.ascii_uppercase) for x in range(6))
-            postdata = urllib.urlencode({'captcha':captcha,'captchavalue':captcha})
+            log.info('[art] Hitting ' + url)
+            html = urllib2.urlopen(url).read()
             
-            log.info('[art] Hitting ' + url + ' with captcha ' + captcha)
-            html = urllib.urlopen(url,postdata).read()
+            if html.find('id="captcha"') != -1:
+                capurl = 'http://www.albumartexchange.com/captcha.php'
+                log.info('[art] captcha needed, hitting ' + capurl + ' for captcha')
+                cookiemonster = urllib2.HTTPCookieProcessor()
+                opener = urllib2.build_opener(cookiemonster)
+                opener.open(capurl)
+                captcha = cookiemonster.cookiejar._cookies['www.albumartexchange.com']['/']['security_code'].value
+                log.info('[art] found captcha ' + captcha)
+                postdata = urllib.urlencode({'captcha':captcha})
+                html = opener.open(url, postdata).read()
+                if html.find('id="captcha"') == -1:
+                    log.info('[art] captcha success')
+                else:
+                    log.info('[art] captcha failed')
+                    raise Exception('failed captcha')
             
             search = re.search('src="/phputil/scale_image.php\?size=150&amp;src=(?P<src>.*?)"',html)
             
