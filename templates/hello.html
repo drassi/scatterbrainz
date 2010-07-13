@@ -10,8 +10,10 @@
 <script type="text/javascript" src="/jquery.hotkeys.js"></script>
 <script type="text/javascript" src="/splitter.js"></script>
 <script type="text/javascript" src="/jsTreePlugins/jquery.tree.hotkeys.js"></script>
+<script type="text/javascript" src="/adgallery/jquery.ad-gallery.js"></script>
 <link rel="stylesheet" type="text/css" href="/scatterbrainz.css" />
 <link rel="stylesheet" type="text/css" href="/jquery-ui-1.8rc3.custom.css" />
+<link rel="stylesheet" type="text/css" href="/adgallery/jquery.ad-gallery.css" />
 </head>
 
 <body>
@@ -78,33 +80,39 @@
         <div class="dashboardMarqueeContainer">
             <div id="playingArtist" class="dashboardMarquee"></div>
         </div>
-        <div class="dashboardPanel hidden">
+    </div>
+    <div class="dashboardPanel hidden">
+        <div id="artistInfo">
             <img class="left" src="/icons/guitar.png" />
         </div>
+        <div id="artistImages"></div>
     </div>
+    
 
     <div class="dashboardEntity left">
         <img class="albumArt dashboardIcon" src="/icons/vinyl.png" />
         <div class="dashboardMarqueeContainer">
             <div id="playingAlbum" class="dashboardMarquee"></div>
         </div>
-        <div class="dashboardPanel hidden">
-            <img class="albumArt left" src="/icons/vinyl.png" style="overflow:hidden;"/>
-            <div style="float:left;">
-                <span id="asin"></span>
-            </div>
+    </div>
+    <div class="dashboardPanel hidden" style="left:185px;">
+        <img class="albumArt left" src="/icons/vinyl.png" style="overflow:hidden; max-height: 800px; max-width: 800px;"/>
+        <div style="float:left;">
+            <span id="asin"></span>
         </div>
     </div>
+    
 
     <div class="dashboardEntity left">
         <img class="dashboardIcon" src="/icons/note3.png" />
         <div class="dashboardMarqueeContainer">
             <div id="playingTrack" class="dashboardMarquee"></div>
         </div>
-        <div class="dashboardPanel hidden">
-            <div id="lyrics"></div>
-        </div>
     </div>
+    <div class="dashboardPanel hidden" style="left:375px;">
+        <div id="lyrics"></div>
+    </div>
+    
 
     <div id="controlsDashboard" class="left">
         <div id="player_container"> 

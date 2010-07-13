@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import pylast
 import string
 import urllib
 import urllib2
@@ -29,6 +30,8 @@ from scatterbrainz.model.track import Track
 from scatterbrainz.model.artist import Artist
 from scatterbrainz.model.album import Album
 
+from scatterbrainz.config.config import Config
+
 def unescape(text):
     def fixup(m):
         text = m.group(0)
@@ -51,6 +54,12 @@ def unescape(text):
     return re.sub("&#?\w+;", fixup, text)
 
 class HelloController(BaseController):
+
+    lastfmNetwork = pylast.get_lastfm_network(api_key = Config.LAST_FM_API_KEY,
+                                              api_secret = Config.LAST_FM_API_SECRET,
+                                              username = Config.LAST_FM_USER,
+                                              password_hash = pylast.md5(Config.LAST_FM_PASSWORD))
+    lastfmNetwork.enable_caching()
     
     def index(self):
         return render('/hello.html')
@@ -316,11 +325,45 @@ class HelloController(BaseController):
             if not "'lyrics':'Not found'" in html:
                 search = re.search("'url':'(?P<url>.*?)'",html)
                 lyricurl = urllib.unquote(search.group('url'))
+                page = lyricurl.split('/')[-1]
+                lyricurl = 'http://lyrics.wikia.com/index.php?title='+page+'&action=edit'
                 log.info('[lyric] Hitting ' + lyricurl)
                 lyrichtml = urllib.urlopen(lyricurl).read()
-                lyrics = re.search("<div class='lyricbox'>.*?</div>(?P<lyrics>.*?)<!-- \n", lyrichtml).group('lyrics')
-                lyrics = unescape(lyrics)
-                track.lyrics = lyrics
+                lyricREstr = "&lt;lyrics&gt;(?P<lyrics>.*)&lt;/lyrics&gt;"
+                lyricRE = re.search(lyricREstr, lyrichtml, re.S)
+                if lyricRE:
+                    lyrics = lyricRE.group('lyrics').strip('\n')
+                    if '{{gracenote_takedown}}' in lyrics:
+                        historyurl = 'http://lyrics.wikia.com/index.php?title='+page+'&action=history'
+                        log.info('[lyric] Found gracenote takedown, hitting ' + historyurl)
+                        historyhtml = urllib.urlopen(historyurl).read()
+                        oldidRE = re.search(".*GracenoteBot.*?/index\.php\?title=.*?&amp;oldid=(?P<oldid>\d+)", historyhtml, re.S)
+                        if oldidRE:
+                            oldid = oldidRE.group('oldid')
+                            oldlyricsurl = lyricurl + '&oldid=' + oldid
+                            log.info('[lyric] found pre-takedown lyrics! hitting ' + oldlyricsurl)
+                            oldlyrichtml = urllib.urlopen(oldlyricsurl).read()
+                            lyricRE = re.search(lyricREstr, oldlyrichtml, re.S)
+                            if lyricRE:
+                                lyrics = lyricRE.group('lyrics').strip('\n')
+                                if '{{gracenote_takedown}}' in lyrics:
+                                    raise Exception('[lyric] Still found takedown lyrics!')
+                                elif '{{Instrumental}}' in lyrics:
+                                    track.lyrics = u'(Instrumental)'
+                                else:
+                                    track.lyrics = lyrics.replace('\n','<br />').decode('utf-8')
+                            else:
+                                log.info('[lyric] failed lyrics!')
+                                raise Exception('failed lyrics!')
+                        else:
+                            log.info('[lyric] no pre-takedown lyrics found :(')
+                    elif '{{Instrumental}}' in lyrics:
+                        track.lyrics = u'(Instrumental)'
+                    else:
+                        track.lyrics = lyrics.replace('\n','<br />').decode('utf-8')
+                else:
+                    log.info('[lyric] failed lyrics!')
+                    raise Exception('failed lyrics!')
             else:
                 log.info('[lyric] No results found')
             Session.begin()
@@ -370,3 +413,13 @@ class HelloController(BaseController):
         if track.album.asin:
             json['asin'] = track.album.asin
         return simplejson.dumps(json)
+
+    def getArtistInfoAJAX(self):
+        trackid = request.params['trackid'].split('_')[1]
+        track = Session.query(Track).filter_by(id=trackid).one()
+        artist = self.lastfmNetwork.get_artist(track.artist.name)
+        return simplejson.dumps({
+            'bio'    : artist.get_bio_content(),
+            'images' : map(lambda i:[i.sizes.largesquare, i.sizes.original], artist.get_images(limit=20))
+        })
+

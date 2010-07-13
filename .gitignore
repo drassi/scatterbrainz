@@ -3,3 +3,5 @@
 public/art
 public/.music
 external/.DS_Store
+config/config.py
+

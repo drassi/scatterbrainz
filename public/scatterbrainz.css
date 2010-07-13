@@ -324,5 +324,30 @@ ul#icons #volume-min {
 #lyrics {
     height: 600px;
     width: 400px;
-    overflow: auto;
+    overflow-y: auto;
 }
+
+#artistInfo {
+    height: 600px;
+    width: 400px;
+    overflow-y: auto;
+    float: left;
+}
+
+#artistImages {
+    height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#artistImages img {
+    max-width: 800px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#gallery {
+    float: left;
+}
+

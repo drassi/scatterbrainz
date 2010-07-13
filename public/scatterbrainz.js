@@ -349,7 +349,13 @@ $(document).ready(function(){
     });
     
     $('.dashboardEntity').click(function(){
-        $(this).find('.dashboardPanel').slideToggle();
+        var panel = $(this).next('.dashboardPanel');
+        if (panel.is(':visible')) {
+            panel.slideUp();
+        } else {
+            $('.dashboardPanel:visible').slideUp();
+            panel.slideDown();
+        }
     });
 
     setTimeout(function() {
@@ -665,4 +671,46 @@ function populatePlayingTrackInfo(trackid) {
             }
         }
     );
+    $.getJSON(
+        '/hello/getArtistInfoAJAX',
+        {'trackid': trackid},
+        function(data) {
+            if ('bio' in data) {
+                $('#artistInfo').html(data['bio']);
+            } else {
+                $('#artistInfo').html('<img src="/icons/guitar.png" />');
+            }
+            if ('images' in data) {
+                createADGallery(data['images']);
+            } else {
+                $('#artistImages').empty();
+            }
+        }
+    );
 }
+
+function createADGallery(images) {
+    $('#artistImages').empty();
+    var thumbs = $('<ul>').addClass('ad-thumb-list');
+    for (i in images) {
+        thumbs.append($('<li>')
+                  .append($('<a>').attr('href',images[i][1])
+                      .append($('<img>').attr('src',images[i][0]))
+                  )
+        );
+    }
+    var nav = $('<div>').addClass('ad-nav')
+                        .append($('<div>').addClass('ad-thumbs')
+                                         .append(thumbs));
+    var gallery = $('<div>').addClass('ad-gallery')
+                            .append($('<div>').addClass('ad-image-wrapper'))
+                            .append($('<div>').addClass('ad-controls'))
+                            .append(nav);
+    $('#artistImages').append(gallery);
+    gallery.adGallery({
+        loader_image: '/adgallery/loader.gif',
+        width: 600,
+        height: 400
+    });
+}
+
