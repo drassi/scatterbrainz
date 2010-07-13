@@ -325,7 +325,7 @@ class HelloController(BaseController):
             if not "'lyrics':'Not found'" in html:
                 search = re.search("'url':'(?P<url>.*?)'",html)
                 lyricurl = urllib.unquote(search.group('url'))
-                page = lyricurl.split('/')[-1]
+                page = urllib.quote(lyricurl.split('/')[-1])
                 lyricurl = 'http://lyrics.wikia.com/index.php?title='+page+'&action=edit'
                 log.info('[lyric] Hitting ' + lyricurl)
                 lyrichtml = urllib.urlopen(lyricurl).read()
