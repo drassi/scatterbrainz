@@ -275,14 +275,17 @@ class HelloController(BaseController):
                 else:
                     log.info('[art] captcha failed')
                     raise Exception('failed captcha')
-            
-            search = re.search('src="/phputil/scale_image.php\?size=150&amp;src=(?P<src>.*?)"',html)
-            
-            if search:
-                image = site + urllib.unquote(search.group('src'))
-                track.album.albumArtFilename = self._fetchAlbumArt(artist, album, image)
-            else:
+            nonefound = re.search('There are no images to display\.', html)
+            if nonefound:
                 log.info('[art] No results found')
+            else:
+                search = re.search('src="(?P<src>/gallery/images/public.*?)"' ,html)
+                if search:
+                    thumb = site + urllib.unquote(search.group('src'))
+                    image = thumb.replace('.tn', '').replace('/_','/')
+                    track.album.albumArtFilename = self._fetchAlbumArt(artist, album, image)
+                else:
+                    raise Exception('Didnt find message for no images, but couldnt locate one')
             Session.begin()
             Session.commit()
         json = {}
