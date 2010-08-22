@@ -2,7 +2,6 @@ import os
 from datetime import datetime
 
 import logging
-
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 
@@ -25,8 +24,26 @@ def getid3prop(mutagen, prop):
     else:
         return None
 
+BASE = 'scatterbrainz/public/.music/'
+
 class LoadController(BaseController):
 
+    def check(self):
+        missing = []
+        changed = []
+        for track in Session.query(Track):
+            path = os.path.join(BASE, track.filepath)
+            if os.path.exists(path):
+                size = os.path.getsize(path)
+                mtime = datetime.fromtimestamp(os.path.getmtime(path))
+                if size != track.filesize or mtime != track.filemtime:
+                    changed.append(track)
+                    print path + ' was changed!'
+            else:
+                print path + ' doesnt exists!'
+                missing.append(track)
+        return 'OK!'
+    
     def load(self):
         now = datetime.now()
         numFilesSeen = 0
@@ -45,7 +62,7 @@ class LoadController(BaseController):
 
         initialLoad = Session.query(Track).count() == 0
         
-        for dirname, dirnames, filenames in os.walk('scatterbrainz/public/.music/'):
+        for dirname, dirnames, filenames in os.walk(BASE):
             localAlbums = {}
             for filename in filenames:
                 try:
