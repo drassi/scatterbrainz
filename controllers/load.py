@@ -28,7 +28,7 @@ BASE = 'scatterbrainz/public/.music/'
 
 class LoadController(BaseController):
 
-    def check(self):
+    def checkdb(self):
         missing = []
         changed = []
         for track in Session.query(Track):
@@ -43,6 +43,16 @@ class LoadController(BaseController):
                 print path + ' doesnt exists!'
                 missing.append(track)
         return 'OK!'
+    
+    def checkfiles(self):
+        added = []
+        filepaths = set(map(lambda t: t.filepath, Session.query(Track)))
+        for dirname, dirnames, filenames in os.walk(BASE):
+            for filename in filenames:
+                path = os.path.join(os.path.relpath(dirname, BASE), filename).decode('utf-8')
+                if path not in filepaths:
+                    added.append(path)
+                    print path + ' is new file!'
     
     def load(self):
         now = datetime.now()
@@ -68,7 +78,7 @@ class LoadController(BaseController):
                 try:
 
                     # get path and check if we've already seen file
-                    filepath = os.path.join(os.path.relpath(dirname, 'scatterbrainz/public/.music/'), filename).decode('utf-8')
+                    filepath = os.path.join(os.path.relpath(dirname, BASE), filename).decode('utf-8')
                     if not initialLoad:
                         if Session.query(Track).filter_by(filepath=filepath).count() != 0:
                             continue
