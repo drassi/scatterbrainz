@@ -86,12 +86,13 @@ class HelloController(BaseController):
         return self._dumpFlatJSON(albums)
     
     def _tracksForAlbumTreeJSON(self, albumid):
-        tracks = Session.query(Track).filter_by(albumid=albumid)
-        return self._dumpFlatJSON(tracks)
+        tracks = Session.query(Track).filter_by(albumid=albumid).order_by(Track.filepath)
+        return self._dumpFlatJSON(tracks, None)
     
     def _dumpFlatJSON(self, results, sortfun=cmp):
         json = map(lambda x: x.toTreeJSON(), results)
-        json.sort(sortfun)
+        if sortfun:
+            json.sort(sortfun)
         return simplejson.dumps(json)
     
     def getTracksAJAX(self):
@@ -118,15 +119,15 @@ class HelloController(BaseController):
         return simplejson.dumps(json)
     
     def _trackPlaylistJSON(self, trackid):
-        tracks = Session.query(Track).filter_by(id=trackid)
+        tracks = Session.query(Track).filter_by(id=trackid).order_by(Track.filepath)
         return self._playlistJSON(tracks)
     
     def _tracksForAlbumPlaylistJSON(self, albumid):
-        tracks = Session.query(Track).filter_by(albumid=albumid)
+        tracks = Session.query(Track).filter_by(albumid=albumid).order_by(Track.filepath)
         return self._playlistJSON(tracks)
     
     def _tracksForArtistPlaylistJSON(self, artistid):
-        tracks = Session.query(Track).filter_by(artistid=artistid)
+        tracks = Session.query(Track).filter_by(artistid=artistid).order_by(Track.filepath)
         return self._playlistJSON(tracks)
 
     def _playlistJSON(self, tracks):
@@ -201,7 +202,7 @@ class HelloController(BaseController):
         json.sort(self._compareTreeFloatVA)
         return simplejson.dumps(json)
 
-    def _compareTreeFloatVA(self, a,b):
+    def _compareTreeFloatVA(self, a, b):
         if a['data'] == 'Various Artists':
             return -1
         elif b['data'] == 'Various Artists':
