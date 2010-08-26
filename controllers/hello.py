@@ -1,10 +1,9 @@
 import os
 import re
 import time
+import urllib
 import pylast
 import string
-import urllib
-import urllib2
 import random as rand
 import simplejson
 import htmlentitydefs
@@ -31,6 +30,8 @@ from scatterbrainz.model.artist import Artist
 from scatterbrainz.model.album import Album
 
 from scatterbrainz.config.config import Config
+
+from scatterbrainz.services import albumart
 
 def unescape(text):
     def fixup(m):
@@ -227,82 +228,18 @@ class HelloController(BaseController):
         url = request.params['url']
         Session.begin()
         album = Session.query(Album).filter_by(id=id).one()
-        album.albumArtFilename = self._fetchAlbumArt(album.artist.name, album.name, url)
+        album.albumArtFilename = albumart._fetchAlbumArt(album.artist.name, album.name, url)
         Session.commit()
         return 'Set album art for ' + album.artist.name + ' - ' + album.name + ' to ' + url + ', saved to ' + album.albumArtFilename
 
     def getAlbumArtAJAX(self):
         trackid = request.params['trackid'].split('_')[1]
         track = Session.query(Track).filter_by(id=trackid).one()
-        if not track.album.albumArtFilename and ( \
-            track.album.lastHitAlbumArtExchange is None \
-            or datetime.now() > track.album.lastHitAlbumArtExchange + timedelta(days=10)):
-            
-            track.album.lastHitAlbumArtExchange = datetime.now()
-            
-            album = track.album.name
-            artist = track.album.artist.name
-            if artist == 'Various Artists':
-                q = album
-            else:
-                q = (artist + ' ' + album)
-            q = q.replace("'","")
-
-            site = 'http://www.albumartexchange.com'
-
-            params = {
-                'grid' : '2x7',
-                'sort' : 7,
-                'q'    : q,
-            }
-
-            url = site + '/covers.php?%s' % urllib.urlencode(params)
-            
-            log.info('[art] Hitting ' + url)
-            html = urllib2.urlopen(url).read()
-            
-            if html.find('id="captcha"') != -1:
-                capurl = 'http://www.albumartexchange.com/captcha.php'
-                log.info('[art] captcha needed, hitting ' + capurl + ' for captcha')
-                cookiemonster = urllib2.HTTPCookieProcessor()
-                opener = urllib2.build_opener(cookiemonster)
-                opener.open(capurl)
-                captcha = cookiemonster.cookiejar._cookies['www.albumartexchange.com']['/']['security_code'].value
-                log.info('[art] found captcha ' + captcha)
-                postdata = urllib.urlencode({'captcha':captcha})
-                html = opener.open(url, postdata).read()
-                if html.find('id="captcha"') == -1:
-                    log.info('[art] captcha success')
-                else:
-                    log.info('[art] captcha failed')
-                    raise Exception('failed captcha')
-            nonefound = re.search('There are no images to display\.', html)
-            if nonefound:
-                log.info('[art] No results found')
-            else:
-                search = re.search('src="(?P<src>/gallery/images/public.*?)"' ,html)
-                if search:
-                    thumb = site + urllib.unquote(search.group('src'))
-                    image = thumb.replace('.tn', '').replace('/_','/')
-                    track.album.albumArtFilename = self._fetchAlbumArt(artist, album, image)
-                else:
-                    raise Exception('Didnt find message for no images, but couldnt locate one')
-            Session.begin()
-            Session.commit()
+        albumartfilename = albumart.get_art(Session, track.album)
         json = {}
-        if track.album.albumArtFilename:
-            json['albumArtURL'] = track.album.albumArtFilename
+        if albumartfilename is not None:
+            json['albumArtURL'] = albumartfilename
         return simplejson.dumps(json)
-        
-    def _fetchAlbumArt(self, artist, album, url):
-        extension = url.rsplit('.', 1)[1]
-        delchars = ''.join(c for c in map(chr, range(256)) if not c.isalnum())
-        delchars = delchars.translate(None," ()'&!-+_.")
-        filename = (artist + ' - ' + album).encode('utf-8').translate(None, delchars) + '.' + extension
-        filepath = 'scatterbrainz/public/art/' + filename
-        log.info('[art] Saving ' + url + ' to ' + filepath)
-        urllib.urlretrieve(url, filepath)
-        return unicode('/art/' + filename)
 
     def getLyricsAJAX(self):
         trackid = request.params['trackid'].split('_')[1]
