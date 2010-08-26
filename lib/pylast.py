@@ -928,7 +928,7 @@ def _namedtuple(name, children):
         return fancydict
 
 TopItem = _namedtuple("TopItem", ["item", "weight"])
-SimilarItem = _namedtuple("SimilarItem", ["item", "match"])
+SimilarItem = _namedtuple("SimilarItem", ["item", "match", "mbid"])
 LibraryItem = _namedtuple("LibraryItem", ["item", "playcount", "tagcount"])
 PlayedTrack = _namedtuple("PlayedTrack", ["track", "playback_date", "timestamp"])
 LovedTrack = _namedtuple("LovedTrack", ["track", "date", "timestamp"])
@@ -1403,10 +1403,11 @@ class Artist(_BaseObject, _Taggable):
         
         names = _extract_all(doc, "name")
         matches = _extract_all(doc, "match")
+        mbid = _extract_all(doc, "mbid")
         
         artists = []
         for i in range(0, len(names)):
-            artists.append(SimilarItem(Artist(names[i], self.network), _number(matches[i])))
+            artists.append(SimilarItem(Artist(names[i], self.network), _number(matches[i]), mbid[i]))
         
         return artists
 
@@ -2402,7 +2403,7 @@ class Track(_BaseObject, _Taggable):
             artist = _extract(node, 'name', 1)
             match = _number(_extract(node, "match"))
             
-            seq.append(SimilarItem(Track(artist, title, self.network), match))
+            seq.append(SimilarItem(Track(artist, title, self.network), match, None))
         
         return seq
 
