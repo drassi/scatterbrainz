@@ -2,7 +2,6 @@ import os
 import re
 import time
 import urllib
-import pylast
 import string
 import random as rand
 import simplejson
@@ -32,6 +31,7 @@ from scatterbrainz.model.album import Album
 from scatterbrainz.config.config import Config
 
 from scatterbrainz.services import albumart
+from scatterbrainz.lib import pylast
 
 def unescape(text):
     def fixup(m):
