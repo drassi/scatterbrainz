@@ -587,6 +587,8 @@ function playlistNextPrev(next) {
                 nextRandomTrack();
             } else if ($('#playlistRandomAlbum').attr('checked')) {
                 nextRandomAlbum();
+            } else if ($('#playlistSimilarTrack').attr('checked')) {
+                nextSimilarTrack(playing.attr('id'));
             } else {
                 $('#play').show();
                 $('#pause').hide();
@@ -615,7 +617,7 @@ function nextRandomTrack() {
     $.getJSON(
         '/hello/randomTrackAJAX',
         {},
-        playRandomCallback
+        playAJAXCallback
     );
 }
 
@@ -623,11 +625,19 @@ function nextRandomAlbum() {
     $.getJSON(
         '/hello/randomAlbumAJAX',
         {},
-        playRandomCallback
+        playAJAXCallback
     );
 }
 
-function playRandomCallback(data) {
+function nextSimilarTrack(id) {
+    $.getJSON(
+        '/hello/similarTrackAJAX',
+        {'id':id},
+        playAJAXCallback
+    );
+}
+
+function playAJAXCallback(data) {
     var last = $('.song:last');
     $(document).data('playlistDropTarget', null);
     addToPlaylistCallback(data);
