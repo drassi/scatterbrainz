@@ -33,27 +33,6 @@ from scatterbrainz.config.config import Config
 from scatterbrainz.services import albumart
 from scatterbrainz.lib import pylast
 
-def unescape(text):
-    def fixup(m):
-        text = m.group(0)
-        if text[:2] == "&#":
-            # character reference
-            try:
-                if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16))
-                else:
-                    return unichr(int(text[2:-1]))
-            except ValueError:
-                pass
-        else:
-            # named entity
-            try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
-            except KeyError:
-                pass
-        return text # leave as is
-    return re.sub("&#?\w+;", fixup, text)
-
 class HelloController(BaseController):
 
     lastfmNetwork = pylast.get_lastfm_network(api_key = Config.LAST_FM_API_KEY,
@@ -328,6 +307,7 @@ class HelloController(BaseController):
         trackid = request.params['trackid'].split('_')[1]
         track = Session.query(Track).filter_by(id=trackid).one()
         (artistName, albumName, trackName) = (track.id3artist, track.id3album, track.id3title)
+        log.info(request.remote_addr + ' playing ' + artistName + ' - ' + trackName)
         if (not track.artist.mbid or not track.album.mbid or not track.album.asin) and \
            (track.album.lastHitMusicbrainz is None \
              or datetime.now() > track.album.lastHitMusicbrainz + timedelta(days=10)):
@@ -343,7 +323,11 @@ class HelloController(BaseController):
                 if artist.name == 'Various Artists':
                     release = searchRelease(None, album.name)
                 else:
-                    release = searchRelease(artist.name, album.name)
+                    if artist.name.startswith('The') or artist.name.startswith('the') or artist.name.startswith('THE'):
+                        artistSearch = artist.name[4:]
+                    else:
+                        artistSearch = artist.name
+                    release = searchRelease(artistSearch, album.name)
                 if release and not album.mbid:
                     album.mbid = release.id.split('/')[-1]
                 if release and not artist.mbid:
