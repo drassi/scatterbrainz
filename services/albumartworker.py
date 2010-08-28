@@ -14,9 +14,12 @@ class AlbumArtWorkerThread(threading.Thread):
         print 'Starting album art worker...'
         while True:
             album = Session.query(Album).filter_by(albumArtFilename=None).filter_by(lastHitAlbumArtExchange=None).first()
-            log.info('[album art worker] looking up album art for ' + album.name)
-            albumart.get_art(Session, album)
-            time.sleep(360)
+            if album is not None:
+                log.info('[album art worker] looking up album art for ' + album.name)
+                albumart.get_art(Session, album)
+                time.sleep(360)
+            else:
+                time.sleep(1800)
 
 def start_albumartworker():
     worker = AlbumArtWorkerThread()

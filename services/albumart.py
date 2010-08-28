@@ -20,6 +20,7 @@ def get_art(Session, album):
         else:
             q = (album.artist.name + ' ' + album.name)
         q = q.replace("'","")
+        q = q.replace("&","")
 
         site = 'http://www.albumartexchange.com'
 
