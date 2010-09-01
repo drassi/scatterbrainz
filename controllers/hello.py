@@ -353,7 +353,8 @@ class HelloController(BaseController):
     def scrobbleTrackAJAX(self):
         trackid = request.params['id'].split('_')[1]
         track = Session.query(Track).filter_by(id=trackid).one()
-        self.scrobbler.scrobble(track.id3artist, track.id3title, int(time.time()) - track.mp3length, pylast.SCROBBLE_SOURCE_USER, pylast.SCROBBLE_MODE_PLAYED, track.mp3length, track.id3album, track.getTrackNum())
+        if track.mp3length >= 30:
+            self.scrobbler.scrobble(track.id3artist, track.id3title, int(time.time()) - track.mp3length, pylast.SCROBBLE_SOURCE_USER, pylast.SCROBBLE_MODE_PLAYED, track.mp3length, track.id3album, track.getTrackNum())
 
     def getArtistInfoAJAX(self):
         trackid = request.params['trackid'].split('_')[1]
