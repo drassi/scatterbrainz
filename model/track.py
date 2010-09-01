@@ -71,6 +71,12 @@ class Track(Base):
         self.mbid = mbid
         self.added = added
     
+    def getTrackNum(self):
+        if self.id3tracknum:
+            return int(self.id3tracknum.split('/')[0])
+        else:
+            return None
+    
     def toPlaylistJSON(self):
         return dict(id = self.id,
                     title = r.title(self),

@@ -3617,13 +3617,16 @@ class Scrobbler(object):
                 self.username = self.network.get_authenticated_user().get_name()
             token = md5(self.network.api_secret + timestamp)
         
-        params = {"hs": "true", "p": "1.2.1", "c": self.client_id,
-            "v": self.client_version, "u": self.username, "t": timestamp,
-            "a": token}
-        
-        if self.network.session_key and self.network.api_key:
-            params["sk"] = self.network.session_key
-            params["api_key"] = self.network.api_key
+        params = {"hs": "true", "p": "1.2.1", "c": self.client_id, \
+            "v": self.client_version, "u": self.username, "t": timestamp} 
+        if self.network.api_key and self.network.api_secret and self.network.session_key: 
+            if not self.username: 
+                self.username = self.network.get_authenticated_user().get_name() 
+            params["a"] = md5(self.network.api_secret + timestamp) 
+            params["sk"] = self.network.session_key 
+            params["api_key"] = self.network.api_key 
+        elif self.password and self.username: 
+            params["a"] = md5(self.password + timestamp) 
         
         server = self.network.submission_server
         response = _ScrobblerRequest(server, params, self.network, "GET").execute().split("\n")

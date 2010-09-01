@@ -106,7 +106,7 @@ $(document).ready(function(){
             $('.song').live('dblclick', play);
         }
     })
-    .jPlayer("onSoundComplete", playListNext)
+    .jPlayer("onSoundComplete", playListNextAndScrobble)
     .jPlayer("onProgressChange", function(lp,ppr,ppa,pt,tt) {
         var lpInt = parseInt(lp);
         var ppaInt = parseInt(ppa);
@@ -375,10 +375,14 @@ $(document).ready(function(){
             var m = Number(sp[0]);
             var s = Number(sp[1]);
             if (audio.currentTime > 60*m + s) {
-                playListNext();
+                playListNextAndScrobble();
             }
         }
     }, 5000);
+    
+    if (window.location.hash == "#scrobble") {
+        alert('scrobbling..');
+    }
 });
 
 function windowResize(target) {
@@ -611,6 +615,20 @@ function playListPrev() {
 
 function playListNext() {
     playlistNextPrev(true);
+}
+
+function playListNextAndScrobble() {
+    if (window.location.hash == "#scrobble") {
+        scrobbleTrack($('.playing').attr('id'));
+    }
+    playListNext();
+}
+
+function scrobbleTrack(id) {
+    $.getJSON(
+        '/hello/scrobbleTrackAJAX',
+        {'id':id}
+    );
 }
 
 function nextRandomTrack() {

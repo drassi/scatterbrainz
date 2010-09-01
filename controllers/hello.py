@@ -39,6 +39,7 @@ class HelloController(BaseController):
                                               api_secret = Config.LAST_FM_API_SECRET,
                                               username = Config.LAST_FM_USER,
                                               password_hash = pylast.md5(Config.LAST_FM_PASSWORD))
+    scrobbler = lastfmNetwork.get_scrobbler('tst',1.0)
     lastfmNetwork.enable_caching()
     
     def index(self):
@@ -348,6 +349,11 @@ class HelloController(BaseController):
         if track.album.asin:
             json['asin'] = track.album.asin
         return simplejson.dumps(json)
+    
+    def scrobbleTrackAJAX(self):
+        trackid = request.params['id'].split('_')[1]
+        track = Session.query(Track).filter_by(id=trackid).one()
+        self.scrobbler.scrobble(track.id3artist, track.id3title, int(time.time()) - track.mp3length, pylast.SCROBBLE_SOURCE_USER, pylast.SCROBBLE_MODE_PLAYED, track.mp3length, track.id3album, track.getTrackNum())
 
     def getArtistInfoAJAX(self):
         trackid = request.params['trackid'].split('_')[1]

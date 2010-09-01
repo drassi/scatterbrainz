@@ -16,10 +16,7 @@ def album(track):
     return track.id3album
 
 def tracknum(track):
-    if track.id3tracknum:
-        return int(track.id3tracknum.split('/')[0])
-    else:
-        return ''
+    return track.getTrackNum() or ''
 
 def length(track):
     return minsec(track.mp3length)
