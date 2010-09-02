@@ -11,7 +11,7 @@ def get_art(Session, album):
     if album.albumArtFilename is not None:
         return album.albumArtFilename
     elif album.lastHitAlbumArtExchange is None \
-        or datetime.now() > album.lastHitAlbumArtExchange + timedelta(days=10):
+        or datetime.now() > album.lastHitAlbumArtExchange + timedelta(days=30):
         
         album.lastHitAlbumArtExchange = datetime.now()
         

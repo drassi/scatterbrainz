@@ -227,15 +227,15 @@ $(document).ready(function(){
 
     $('.jp-playlist').bind('keydown', 'down', function() {
 
-    var next = $('.lastSelected').next();
-    if (next.length > 0) {
-        $('.selected').removeClass('selected').removeClass('lastSelected');
-    next.addClass('selected').addClass('lastSelected');
-    scrollTo(next, $('.jp-playlist'));
-    }
+        var next = $('.lastSelected').next();
+        if (next.length > 0) {
+            $('.selected').removeClass('selected').removeClass('lastSelected');
+        next.addClass('selected').addClass('lastSelected');
+        scrollTo(next, $('.jp-playlist'));
+        }
 
-    return false;
-});
+        return false;
+    });
 
     $('.jp-playlist').bind('keydown', 'up', function() {
         var prev = $('.lastSelected').prev();
@@ -379,6 +379,19 @@ $(document).ready(function(){
             }
         }
     }, 5000);
+    
+    var idsearch = window.location.href.match(/id=.*\/\d+/);
+    if (idsearch != null) {
+        var id = idsearch[0].split('=')[1];
+        $.getJSON(
+            '/hello/getTracksAJAX',
+            {'id': id},
+            function(data) {
+                addToPlaylistCallback(data);
+                playRow($('.song:first'));
+            }
+        );
+    }
     
     if (window.location.hash == "#scrobble") {
         alert('scrobbling..');

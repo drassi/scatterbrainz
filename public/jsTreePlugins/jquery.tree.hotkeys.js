@@ -32,6 +32,11 @@
 					    addToPlaylist(this.selected.attr('id'), null);
 					    return false;
 					},
+					"ctrl+c" : function () {
+					    var l = window.location;
+					    alert(l.protocol + '//' + l.host + l.pathname + '?id=' + this.selected.attr('id'));
+					    return false;
+					}
 				}
 			},
 			exec : function(key) {
