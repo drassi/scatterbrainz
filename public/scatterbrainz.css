@@ -4,9 +4,7 @@ body {
     font-family: sans-serif;
     font-size: 0.8em;
     overflow: hidden;
-    -moz-user-select: none;
     -khtml-user-select: none;
-    user-select: none;
     background: #3689e6 url('/icons/clouds.png') no-repeat center top;
 }
 
@@ -110,6 +108,10 @@ div#leftPane {
     width: 330px;
 }
 
+div#leftPane, div.jp-playlist-player, div.vsplitbar {
+    top: 39px;
+}
+
 div#browseContainer {
     width: 100%;
     position: absolute;
@@ -193,6 +195,7 @@ div#dashboard {
     right: 0px;
     border: 3px solid #B0CDFF;
     border-radius: 15px;
+    z-index: 3 !important;
 }
 
 .dashboardIcon:first-child {
@@ -308,46 +311,119 @@ ul#icons #volume-min {
     width: 15%;
 }
 
-.dashboardEntity:hover {
-    background-color: #D2E3FF;
-    cursor: pointer;
-}
-
-.dashboardPanel {
-    position: absolute;
-    z-index: 200;
-    bottom: 45px;
-    border: 3px solid #B0CDFF;
-    background-color: rgba(255, 255, 255, 0.9);
-}
-
-#lyrics {
-    height: 600px;
-    width: 400px;
-    overflow-y: auto;
-}
-
-#artistInfo {
-    height: 600px;
-    width: 400px;
-    overflow-y: auto;
-    float: left;
-}
-
-#artistImages {
-    height: 600px;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-#artistImages img {
-    max-width: 800px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 #gallery {
     float: left;
+}
+
+div#navigation {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    border-radius: 15px;
+    border: 3px solid #B0CDFF;
+    height: 28px;
+    right: 0px;
+}
+
+div#navigation button {
+    border: 3px solid #B0CDFF;
+    background-color: #E0ECFF;
+    border-radius: 15px;
+    cursor: pointer;
+    width: 120px;
+    opacity: 0.9;
+}
+
+button#playlistNav {
+    margin-left: 2px;
+}
+
+div#navigation button:hover {
+    background-color: #D2E3FF;
+}
+
+div#navigation button.selectedNav {
+    background-color: #D2E3FF;
+    font-weight: bold;
+}
+
+div#nowPlayingContainer {
+    top: 39px;
+    left: 0px;
+    right: 0px;
+    bottom: 56px;
+    border: 3px solid #B0CDFF;
+    border-radius: 15px;
+    -khtml-user-select: auto;
+}
+
+div#nowPlayingArtistContainerContainer {
+    width: 30%;
+    height: 100%;
+    float: left;
+    overflow: hidden;
+}
+
+div#nowPlayingArtistContainer {
+    margin: 10px;
+}
+
+img.nowPlayingArtistImage {
+    max-width: 100%;
+    -webkit-box-shadow: #666 2px 2px 3px;
+}
+
+div#nowPlayingArtistInfo {
+    margin-top: 20px;
+}
+
+div#nowPlayingArtistBio {
+    margin-top: 20px;
+    overflow-y: auto;
+}
+
+div#nowPlayingAlbumContainerContainer {
+    width: 40%;
+    height: 100%;
+    float: left;
+    overflow: hidden;
+}
+
+div#nowPlayingAlbumContainer {
+    margin: 10px;
+    height: 100%;
+}
+
+img#nowPlayingAlbumArtImage {
+    max-width: 100%;
+    -webkit-box-shadow: #666 2px 2px 3px;
+}
+
+div#nowPlayingAlbumInfo {
+    margin-top: 20px;
+}
+
+div#nowPlayingTrackContainerContainer {
+    width: 30%;
+    height: 100%;
+    float: left;
+    overflow: hidden;
+}
+
+div#nowPlayingTrackContainer {
+    margin: 10px;
+}
+
+div#nowPlayingTrackLyrics {
+    width: 100%;
+    overflow-y: auto;
+}
+
+div.nowPlayingHeader {
+    float:left;
+    padding: 5px 0px 15px 0px;
+    width: 100%;
+    font-weight: bold;
+    text-align: center;
 }
 

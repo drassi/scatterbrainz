@@ -17,12 +17,15 @@ class AlbumArtWorkerThread(threading.Thread):
     def run(self):
         print 'Starting album art worker...'
         while True:
-            album = Session.query(Album).filter(Album.albumArtFilename == None).filter(or_(Album.lastHitAlbumArtExchange < datetime.now() - timedelta(days=30), Album.lastHitAlbumArtExchange == None)).order_by(Album.lastHitAlbumArtExchange).first()
-            if album is not None:
-                log.info('[album art worker] looking up album art for ' + album.name)
+            query = Session.query(Album).filter(Album.albumArtFilename == None).filter(or_(Album.lastHitAlbumArtExchange < datetime.now() - timedelta(days=30), Album.lastHitAlbumArtExchange == None)).order_by(Album.lastHitAlbumArtExchange)
+            count = query.count()
+            if count > 0:
+                album = query.first()
+                log.info('[album art worker] looking up album art for ' + album.name + ', ' + str(count-1) + ' queued')
                 albumart.get_art(Session, album)
                 time.sleep(360)
             else:
+                log.info('[album art worker] nothing queued, sleeping...')
                 time.sleep(1800)
 
 def start_albumartworker():

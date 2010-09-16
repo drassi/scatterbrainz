@@ -10,15 +10,17 @@
 <script type="text/javascript" src="/jquery.hotkeys.js"></script>
 <script type="text/javascript" src="/splitter.js"></script>
 <script type="text/javascript" src="/jsTreePlugins/jquery.tree.hotkeys.js"></script>
-<script type="text/javascript" src="/adgallery/jquery.ad-gallery.js"></script>
+<script type="text/javascript" src="/fancybox/jquery.fancybox-1.3.1.pack.js"></script>
+<script type="text/javascript" src="/fancybox/jquery.easing-1.3.pack.js"></script>
+<script type="text/javascript" src="/fancybox/jquery.mousewheel-3.0.2.pack.js"></script>
 <link rel="stylesheet" type="text/css" href="/scatterbrainz.css" />
 <link rel="stylesheet" type="text/css" href="/jquery-ui-1.8rc3.custom.css" />
-<link rel="stylesheet" type="text/css" href="/adgallery/jquery.ad-gallery.css" />
+<link rel="stylesheet" type="text/css" href="/fancybox/jquery.fancybox-1.3.1.css" />
 </head>
 
 <body>
 
-<div id="leftPane">
+<div id="leftPane" class="browsePane">
     <div id="search">
         <div id="ditchSearchContainer">
             <button id="ditchSearch">Clear search</button>
@@ -34,7 +36,7 @@
         <div id="searchBrowser" class="noBrowserFocusIndicator" tabindex="101"></div>
     </div>
 </div>
-<div class="jp-playlist-player">
+<div class="jp-playlist-player browsePane">
     <div id="jquery_jplayer"></div>
     <div id="playlistURcorner"></div>
     <div class="playlistHeadDiv noBrowserFocusIndicator">
@@ -71,7 +73,38 @@
 </div>
 
 <!-- leave this div for splitbar so it doesn't interfere w/ jstree-marker -->
-<div style="z-index:0 !important;"></div>
+<div id="browsePaneSplitter" class="browsePane" style="z-index:2 !important;"></div>
+
+<div id="nowPlayingContainer" class="hidden transparent">
+    <div id="nowPlayingArtistContainerContainer">
+        <div id="nowPlayingArtistContainer">
+            <div id="nowPlayingArtistHeader" class="nowPlayingHeader"></div>
+            <div id="nowPlayingArtistImageContainer"></div>
+            <div id="nowPlayingArtistInfo"></div>
+            <div id="nowPlayingArtistBio" class="expandHeightToFitBrowser" expandheightoffsetpx="70"></div>
+        </div>
+    </div>
+    <div id="nowPlayingAlbumContainerContainer">
+        <div id="nowPlayingAlbumContainer">
+            <div id="nowPlayingAlbumHeader" class="nowPlayingHeader"></div>
+            <a id="nowPlayingAlbumArtImageLink" class="albumArt">
+                <img id="nowPlayingAlbumArtImage" class="albumArt" />
+            </a>
+            <div id="nowPlayingAlbumInfo"></div>
+        </div>
+    </div>
+    <div id="nowPlayingTrackContainerContainer">
+        <div id="nowPlayingTrackContainer">
+            <div id="nowPlayingTrackHeader" class="nowPlayingHeader"></div>
+            <div id="nowPlayingTrackLyrics" class="expandHeightToFitBrowser" expandheightoffsetpx="70"></div>
+        </div>
+    </div>
+</div>
+
+<div id="navigation" class="transparent">
+   <button id="playlistNav" class="selectedNav">Playlist</button>
+   <button id="nowPlayingNav">Now Playing</button>
+</div>
 
 <div id="dashboard" class="transparent">
 
@@ -80,14 +113,7 @@
         <div class="dashboardMarqueeContainer">
             <div id="playingArtist" class="dashboardMarquee"></div>
         </div>
-    </div>
-    <div class="dashboardPanel hidden">
-        <div id="artistInfo">
-            <img class="left" src="/icons/guitar.png" />
-        </div>
-        <div id="artistImages"></div>
-    </div>
-    
+    </div>    
 
     <div class="dashboardEntity left">
         <img class="albumArt dashboardIcon" src="/icons/vinyl.png" />
@@ -95,22 +121,12 @@
             <div id="playingAlbum" class="dashboardMarquee"></div>
         </div>
     </div>
-    <div class="dashboardPanel hidden" style="left:185px;">
-        <img class="albumArt left" src="/icons/vinyl.png" style="overflow:hidden; max-height: 800px; max-width: 800px;"/>
-        <div style="float:left;">
-            <span id="asin"></span>
-        </div>
-    </div>
-    
 
     <div class="dashboardEntity left">
         <img class="dashboardIcon" src="/icons/note3.png" />
         <div class="dashboardMarqueeContainer">
             <div id="playingTrack" class="dashboardMarquee"></div>
         </div>
-    </div>
-    <div class="dashboardPanel hidden" style="left:375px;">
-        <div id="lyrics"></div>
     </div>
     
 
