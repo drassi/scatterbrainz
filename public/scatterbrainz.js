@@ -400,6 +400,7 @@ $(document).ready(function(){
             self.addClass('selectedNav');
             screenMappings[selected.attr('id')].fadeOut();
             screenMappings[self.attr('id')].fadeIn();
+            windowResize();
         }
     });
 });
@@ -709,6 +710,8 @@ function populatePlayingTrackInfo(trackid) {
                 $('a#nowPlayingAlbumArtImageLink').fancybox();
             } else {
                 $('img.albumArt').removeAttr('src');
+                $('img.albumArt.dashboardIcon').attr('src', '/icons/vinyl.png');
+                $('#nowPlayingAlbumArtImage').attr('src', '/icons/coverunavailable.jpg');
                 $('a.albumArt').removeAttr('href');
             }
         }
@@ -722,6 +725,7 @@ function populatePlayingTrackInfo(trackid) {
             } else {
                 $('#nowPlayingTrackLyrics').html('');
             }
+            expandHeightToFitBrowser($('#nowPlayingTrackLyrics'));
         }
     );
     $.getJSON(
@@ -733,17 +737,23 @@ function populatePlayingTrackInfo(trackid) {
             } else {
                 $('#nowPlayingArtistBio').html('');
             }
+            expandHeightToFitBrowser($('#nowPlayingArtistBio'));
             $('#nowPlayingArtistImageContainer').empty();
-            if ('images' in data) {
+            if ('images' in data && data['images'].length > 0) {
                 $('#nowPlayingArtistImageContainer').append(
                     $('<a href="'+data['images'][0][1]+'" rel="artist">')
                         .append('<img class="nowPlayingArtistImage" src="'+data['images'][0][1]+'">')
+                        .load(function(){expandHeightToFitBrowser($('#nowPlayingArtistBio'));})
                         .fancybox({speedIn : '100'}));
                 for (var i=1; i<data['images'].length; i++) {
                     $('#nowPlayingArtistImageContainer').append(
                         $('<a href="'+data['images'][i][1]+'" rel="artist" style="display: none;">')
                             .fancybox({speedIn : '100'}));
                 }
+            } else {
+                $('#nowPlayingArtistImageContainer').append(
+                    $('<img class="nowPlayingArtistImage" src="/icons/artistimageunavailable.jpg">')
+                );
             }
         }
     );

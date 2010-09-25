@@ -368,9 +368,15 @@ div#nowPlayingArtistContainer {
     margin: 10px;
 }
 
+div#nowPlayingArtistImageContainer {
+    -webkit-box-shadow: #666 2px 2px 3px;
+    max-height: 50%;
+    display: inline-block;
+    overflow: hidden;
+}
+
 img.nowPlayingArtistImage {
     max-width: 100%;
-    -webkit-box-shadow: #666 2px 2px 3px;
 }
 
 div#nowPlayingArtistInfo {
@@ -420,10 +426,10 @@ div#nowPlayingTrackLyrics {
 }
 
 div.nowPlayingHeader {
-    float:left;
     padding: 5px 0px 15px 0px;
     width: 100%;
     font-weight: bold;
     text-align: center;
+    font-size: 18px;
 }
 
