@@ -15,7 +15,6 @@ from sqlalchemy.sql.functions import random
 from sqlalchemy.orm import contains_eager
 
 from pylons import request, response, session, tmpl_context as c
-from pylons.controllers.util import abort, redirect_to
 
 from scatterbrainz.lib.base import BaseController, render
 
