@@ -1,0 +1,26 @@
+This is just random commands for now.  Eventually it'll be an install guide.
+
+curl http://pylonshq.com/download/1.0/go-pylons.py | python - pylons
+cd pylons
+echo -e "\nTrue" | paster create -t pylons scatterbrainz
+cd scatterbrainz
+git clone git@github.com:drassi/scatterbrainz.git
+python setup.py develop
+paster setup-app development.ini
+paster serve development.ini
+
+cd scatterbrainz/public
+ln -s /media/disk/music/Godspeed\ You\ Black\ Emperor\!/ .music
+http://localhost:5555/load/load?commit=true
+http://localhost:5555/hello/index
+
+config/config.py:
+
+class Config:
+
+    LAST_FM_API_KEY = 'asdf'
+    LAST_FM_API_SECRET = 'asdf'
+    LAST_FM_USER = 'asdf'
+    LAST_FM_PASSWORD = 'asdf'
+
+
