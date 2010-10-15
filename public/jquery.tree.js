@@ -424,8 +424,8 @@
 							return _this.error("LOCKED");
 						}
 						_this.callback("ondblclk", [_this.get_node(event.target).get(0), _this]);
-						event.preventDefault(); 
-						event.stopPropagation();
+						// event.preventDefault(); 
+						// event.stopPropagation();
 						event.target.blur();
 					})
 					.live("contextmenu", function (event) {

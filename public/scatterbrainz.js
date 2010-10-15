@@ -94,6 +94,11 @@ $(document).ready(function(){
             });
         }
     });
+    
+    $('li.browsenode[rel=Track]').live('dblclick', function () {
+        var self = $(this);
+        addToPlaylist(self.attr('id'));
+    });
 
     /**
         * jplayer playlist BS
