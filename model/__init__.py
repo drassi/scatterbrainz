@@ -19,7 +19,7 @@ from scatterbrainz.model.track import Track
 from scatterbrainz.model.album import Album
 from scatterbrainz.model.artist import Artist
 from scatterbrainz.model.rdf import RDFTriple
-
+from scatterbrainz.model.invite import Invite
 from scatterbrainz.model.auth import User, Group, Permission
 
 Artist.tracks = orm.relation(Track, backref='artist')

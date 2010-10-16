@@ -46,5 +46,5 @@ def load_environment(global_conf, app_conf):
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)
     
-    start_albumartworker()
+    #start_albumartworker()
     

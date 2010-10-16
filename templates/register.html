@@ -1,0 +1,16 @@
+<html>
+<head>
+<title>Register</title>
+<script type="text/javascript" src="/jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="/register.js"></script>
+</head>
+<body>
+  <form action="${h.url('/login_handler')}" method="POST">
+    user <input type="text" id="login" name="login" /><br />
+    pass <input type="text" id="password" name="password" /><br />
+    <input id="code" type="hidden" name="code" value="${c.code}"></input>
+  </form>
+  <input id="submit" type="submit" value="Register" />
+</body>
+</html>
+

@@ -1,6 +1,8 @@
 """Setup the scatterbrainz application"""
 import logging
 
+from datetime import datetime
+
 from scatterbrainz.config.environment import load_environment
 from scatterbrainz.model import meta
 from scatterbrainz.model.meta import Session
@@ -37,14 +39,11 @@ def setup_app(command, conf, vars):
     admin = User()
     admin.user_name = u'admin'
     admin.password = u'default'
+    admin.who = u'admin'
+    admin.registered = datetime.now()
     admin.groups = [adminGroup]
     
-    user = User()
-    user.user_name = u'user'
-    user.password = u'default'
-    user.groups = [userGroup]
-    
-    session.add_all([loginPerm, adminPerm, adminGroup, userGroup, admin, user])
+    session.add_all([loginPerm, adminPerm, adminGroup, userGroup, admin])
     
     session.commit()
     

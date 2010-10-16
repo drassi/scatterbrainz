@@ -65,6 +65,10 @@ class User(DeclarativeBase):
     user_name = Column(Unicode(16), unique=True)
 
     _password = Column('password', Unicode(80))
+    
+    who = Column(Unicode, nullable=False)
+    
+    registered = Column(DateTime, nullable=False)
 
     def _set_password(self, password):
         """Hash password on the fly."""
