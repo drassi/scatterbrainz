@@ -467,6 +467,7 @@ function addToPlaylist(id, target) {
 }
 
 function addToPlaylistCallback(data) {
+    var start = ($('.playing').length == 0);
     var insertText = '';
     $.each(data, function(count, trackJSON) {
         insertText += '<tr id="track_'+trackJSON['id']+'" class="song" href="'
@@ -487,6 +488,9 @@ function addToPlaylistCallback(data) {
     }
     $('#playlist thead th').unbind('click');
     $('#playlist').tablesorter();
+    if (start) {
+        playRow($('#track_' + data[0]['id']));
+    }
 }
 
 function searchHandler() {
