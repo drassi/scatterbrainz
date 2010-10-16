@@ -32,6 +32,10 @@ from scatterbrainz.config.config import Config
 from scatterbrainz.services import albumart
 from scatterbrainz.lib import pylast
 
+from repoze.what.predicates import has_permission
+from repoze.what.plugins.pylonshq import ControllerProtector
+
+@ControllerProtector(has_permission('login'))
 class HelloController(BaseController):
 
     lastfmNetwork = pylast.get_lastfm_network(api_key = Config.LAST_FM_API_KEY,
@@ -42,6 +46,7 @@ class HelloController(BaseController):
     lastfmNetwork.enable_caching()
     
     def index(self):
+        c.username = request.environ['repoze.what.credentials']['repoze.what.userid']
         return render('/hello.html')
 
     def treeBrowseAJAX(self):

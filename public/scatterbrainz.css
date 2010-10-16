@@ -334,6 +334,17 @@ div#navigation button {
     opacity: 0.9;
 }
 
+span#welcome {
+    float: right;
+    margin-right: 12px;
+    margin-top: 5px;
+}
+
+button#logout {
+    float: right;
+    margin-right: 2px;
+}
+
 button#playlistNav {
     margin-left: 2px;
 }

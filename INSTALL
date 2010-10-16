@@ -24,3 +24,9 @@ class Config:
     LAST_FM_PASSWORD = 'asdf'
 
 
+
+easy_install repoze.what-quickstart
+easy_install repoze.what-pylons
+
+mutagen
+

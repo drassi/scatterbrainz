@@ -18,9 +18,11 @@ def make_map():
     map.connect('/error/{action}', controller='error')
     map.connect('/error/{action}/{id}', controller='error')
 
-    # CUSTOM ROUTES HERE
-
+    map.connect('/login', controller='auth', action='login')
+    map.connect('/', controller='hello', action='index')
+    map.connect('/play/{id}', controller='hello', action='index')
+    
     map.connect('/{controller}/{action}')
-    map.connect('/{controller}/{action}/{id}')
 
     return map
+

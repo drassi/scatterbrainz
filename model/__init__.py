@@ -19,6 +19,9 @@ from scatterbrainz.model.track import Track
 from scatterbrainz.model.album import Album
 from scatterbrainz.model.artist import Artist
 from scatterbrainz.model.rdf import RDFTriple
+
+from scatterbrainz.model.auth import User, Group, Permission
+
 Artist.tracks = orm.relation(Track, backref='artist')
 Album.tracks = orm.relation(Track, backref='album')
 Album.artist = orm.relation(Artist, backref='albums')

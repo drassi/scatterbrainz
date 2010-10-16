@@ -397,7 +397,7 @@ $(document).ready(function(){
         'nowPlayingNav' : $('#nowPlayingContainer')
     };
     
-    $('div#navigation button').click(function() {
+    $('div#navigation button.screen').click(function() {
         var self = $(this);
         if (!self.hasClass('selectedNav')) {
             var selected = $('.selectedNav');
@@ -407,6 +407,10 @@ $(document).ready(function(){
             screenMappings[self.attr('id')].fadeIn();
             windowResize();
         }
+    });
+    
+    $('button#logout').click(function() {
+        window.location = '/logout_handler';
     });
 });
 

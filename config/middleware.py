@@ -8,8 +8,8 @@ from pylons import config
 from pylons.middleware import ErrorHandler, StatusCodeRedirect
 from pylons.wsgiapp import PylonsApp
 from routes.middleware import RoutesMiddleware
-from auth import AuthMiddleware
 
+from scatterbrainz.lib.auth import add_auth
 from scatterbrainz.config.environment import load_environment
 
 def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
@@ -47,7 +47,7 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     app = CacheMiddleware(app, config)
 
     # CUSTOM MIDDLEWARE HERE (filtered by error handling middlewares)
-    app = AuthMiddleware(app)
+    app = add_auth(app)
 
     if asbool(full_stack):
         # Handle Python exceptions
