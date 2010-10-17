@@ -141,9 +141,9 @@ class LoadController(BaseController):
                 # should probably switch from easyID3 to ordinary ID3
                 # class to get extra MB relationship data.
                 
-                #mbartistid = getid3prop(mutagen,'musicbrainz_albumartistid')
-                #mbalbumid = getid3prop(mutagen,'musicbrainz_albumid')
-                #mbtrackid = getid3prop(mutagen,'musicbrainz_trackid')
+                mbartistid = getid3prop(mutagen,'musicbrainz_albumartistid')
+                mbalbumid = getid3prop(mutagen,'musicbrainz_albumid')
+                mbtrackid = getid3prop(mutagen,'musicbrainz_trackid')
 
                 if not id3artist:
                     artist = None
@@ -156,7 +156,7 @@ class LoadController(BaseController):
                         artistFromDb = Session.query(Artist).filter_by(name=id3artist).first()
                     if artistFromDb is None:
                         artist = Artist(name=id3artist,
-                                         mbid=None,
+                                         mbartistid=None,
                                          added=now)
                         Session.save(artist)
                     else:
@@ -172,7 +172,8 @@ class LoadController(BaseController):
                 else:
                     album = Album(name=id3album,
                                   artist=artist,
-                                  added=now)
+                                  added=now,
+                                  mbid=mbalbumid)
                     Session.save(album)
                     albums[id3album] = album
                     localAlbums[id3album] = album
@@ -194,7 +195,7 @@ class LoadController(BaseController):
                               id3genre=id3genre,
                               id3lyricist=id3lyricist,
                               added=now,
-                              mbid=None,
+                              mbid=mbtrackid,
                               )
                 Session.save(track)
         
