@@ -97,14 +97,15 @@ class LoadController(BaseController):
                 filepath = os.path.join(os.path.relpath(dirname, BASE), filename).decode('utf-8')
                 
                 if not os.path.splitext(filename)[-1].lower() == '.mp3':
-                    raise Exception('not mp3! ' + filepath)
+                    continue
                 
                 if not initialLoad and filepath in filepaths:
                     continue
                 
                 added = added + 1
                 
-                s = _msg(s, 'New file: ' + filepath)
+                if not initialLoad:
+                    s = _msg(s, 'New file: ' + filepath)
                 
                 if not commit:
                     continue

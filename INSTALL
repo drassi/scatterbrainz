@@ -8,6 +8,9 @@ cd scatterbrainz
 rm -rf scatterbrainz
 git clone git@github.com:drassi/scatterbrainz.git
 python setup.py develop
+easy_install repoze.what-quickstart
+easy_install repoze.what-pylons
+easy_install python-musicbrainz2
 paster setup-app development.ini
 paster serve development.ini
 
@@ -27,8 +30,7 @@ class Config:
 
 
 
-easy_install repoze.what-quickstart
-easy_install repoze.what-pylons
+
 
 mutagen
 
