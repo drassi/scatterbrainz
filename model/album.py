@@ -22,10 +22,11 @@ class Album(Base):
     asin = Column(Unicode)
     lastHitMusicbrainz = Column(DateTime)
 
-    def __init__(self, name, artist, added):
+    def __init__(self, name, artist, added, mbid):
         self.name = name
         self.artist = artist
         self.added = added
+        self.mbid = mbid
     
     def toTreeJSON(self, children=None):
         json = {

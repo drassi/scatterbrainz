@@ -18,7 +18,7 @@ from scatterbrainz.model.album import Album
 log = logging.getLogger(__name__)
 
 def getid3prop(mutagen, prop):
-    if prop in mutagen and len(mutagen[prop]) > 0:
+    if prop in mutagen.keys() and len(mutagen[prop]) > 0:
         return mutagen[prop][0]
     else:
         return None
@@ -156,7 +156,7 @@ class LoadController(BaseController):
                         artistFromDb = Session.query(Artist).filter_by(name=id3artist).first()
                     if artistFromDb is None:
                         artist = Artist(name=id3artist,
-                                         mbartistid=None,
+                                         mbid=mbartistid,
                                          added=now)
                         Session.save(artist)
                     else:
