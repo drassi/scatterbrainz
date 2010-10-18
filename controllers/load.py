@@ -27,7 +27,7 @@ def _msg(s, msg):
     log.info(msg)
     return s + msg + '<br><br>'
 
-BASE = 'scatterbrainz/public/.music/'
+BASE = 'scatterbrainz/public/music/'
 
 class LoadController(BaseController):
     

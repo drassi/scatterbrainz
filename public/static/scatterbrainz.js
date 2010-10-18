@@ -60,17 +60,17 @@ $(document).ready(function(){
             },
             'Artist': {
                 icon: {
-                    image: '/icons/artist.gif'
+                    image: '/static/icons/artist.gif'
                 }
             },
             'Album': {
                 icon: {
-                    image: '/icons/cd2small.gif'
+                    image: '/static/icons/cd2small.gif'
                 }
             },
             'Track': {
                 icon: {
-                    image: '/icons/note2small.jpg'
+                    image: '/static/icons/note2small.jpg'
                 }
             }
         }
@@ -559,17 +559,17 @@ function searchCallback(results) {
             },
             'Artist': {
                 icon: {
-                    image: '/icons/person4small.gif'
+                    image: '/static/icons/person4small.gif'
                 }
             },
             'Album': {
                 icon: {
-                    image: '/icons/cd2small.gif'
+                    image: '/static/icons/cd2small.gif'
                 }
             },
             'Track': {
                 icon: {
-                    image: '/icons/note2small.jpg'
+                    image: '/static/icons/note2small.jpg'
                 }
             }
         }
@@ -723,8 +723,8 @@ function populatePlayingTrackInfo(trackid) {
                 $('a#nowPlayingAlbumArtImageLink').fancybox();
             } else {
                 $('img.albumArt').removeAttr('src');
-                $('img.albumArt.dashboardIcon').attr('src', '/icons/vinyl.png');
-                $('#nowPlayingAlbumArtImage').attr('src', '/icons/coverunavailable.jpg');
+                $('img.albumArt.dashboardIcon').attr('src', '/static/icons/vinyl.png');
+                $('#nowPlayingAlbumArtImage').attr('src', '/static/icons/coverunavailable.jpg');
                 $('a.albumArt').removeAttr('href');
             }
         }
@@ -765,7 +765,7 @@ function populatePlayingTrackInfo(trackid) {
                 }
             } else {
                 $('#nowPlayingArtistImageContainer').append(
-                    $('<img class="nowPlayingArtistImage" src="/icons/artistimageunavailable.jpg">')
+                    $('<img class="nowPlayingArtistImage" src="/static/icons/artistimageunavailable.jpg">')
                 );
             }
         }

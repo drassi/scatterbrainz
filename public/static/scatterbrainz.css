@@ -5,7 +5,7 @@ body {
     font-size: 0.8em;
     overflow: hidden;
     -khtml-user-select: none;
-    background: #3689e6 url('/icons/clouds.png') no-repeat center top;
+    background: #3689e6 url('/static/icons/clouds.png') no-repeat center top;
 }
 
 .selected {

@@ -136,7 +136,7 @@ class GetlocalController(BaseController):
 
     def track_URL_from_id(self,id):
         track = Session.query(Track).filter_by(id=id)[0]
-        path = os.path.join('.music',track.filepath)
+        path = os.path.join('music',track.filepath)
         url = self._path_url(path)
         return url
 

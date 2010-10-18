@@ -40,7 +40,7 @@ class Hello2Controller(BaseController):
     def songRelURL(self):
         tracks = Session.query(Track)
         r = tracks[0]
-        path = os.path.join('.music', r.filepath )
+        path = os.path.join('music', r.filepath )
         out =urllib.pathname2url(path)
         return out
 
