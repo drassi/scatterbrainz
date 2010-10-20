@@ -133,13 +133,13 @@ class HelloController(BaseController):
         search = request.params['search']
         maxResults = 50
         artists = Session.query(Artist). \
-                          filter(Artist.name.like('%'+search+'%')) \
+                          filter(Artist.name.ilike('%'+search+'%')) \
                           [0:maxResults]
         albums = Session.query(Album). \
-                         filter(Album.name.like('%'+search+'%')) \
+                         filter(Album.name.ilike('%'+search+'%')) \
                          [0:maxResults]
         tracks = Session.query(Track). \
-                         filter(Track.id3title.like('%'+search+'%')) \
+                         filter(Track.id3title.ilike('%'+search+'%')) \
                          [0:maxResults]
         if len(artists) == maxResults or len(tracks) == maxResults or len(albums) == maxResults:
             truncated = True
