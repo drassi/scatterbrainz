@@ -10,26 +10,30 @@ from pylons import request, response, session, tmpl_context as c
 from scatterbrainz.lib.base import BaseController, render
 
 from scatterbrainz.model.meta import Session
-from scatterbrainz.model.track import Track
-from scatterbrainz.model.rdf import RDFTriple
-from scatterbrainz.model.artist import Artist
-from scatterbrainz.model.album import Album
+from scatterbrainz.model.audiofile import AudioFile
+#from scatterbrainz.model.artist import Artist
+#from scatterbrainz.model.album import Album
+from scatterbrainz.model.musicbrainz import *
 
 log = logging.getLogger(__name__)
-
-def getid3prop(mutagen, prop):
-    if prop in mutagen.keys() and len(mutagen[prop]) > 0:
-        return mutagen[prop][0]
-    else:
-        return None
 
 def _msg(s, msg):
     log.info(msg)
     return s + msg + '<br><br>'
 
-BASE = 'scatterbrainz/public/music/'
+BASE = '/home/dan/dev/pylons/scatterbrainz/scatterbrainz/'
+MUSIC = BASE + 'public/music'
+VIEW = BASE + '/views/views.sql'
+RECORDING_MBID_KEY = 'UFID:http://musicbrainz.org'
+RELEASE_MBID_KEY = 'TXXX:MusicBrainz Album Id'
 
 class LoadController(BaseController):
+
+    def view(self):
+        sql = open(VIEW).read()
+        then = datetime.now()
+        Session.execute(sql)
+        return 'OK!  took ' + str(datetime.now() - then)
     
     def load(self):
     
@@ -37,23 +41,11 @@ class LoadController(BaseController):
     
         s = ''
         
-        now = datetime.now()
-
-        albums = {}
-        artists = {}
-        
         if commit:
             Session.begin()
-            variousArtists = Session.query(Artist).filter_by(mbid=u'89ad4ac3-39f7-470e-963a-56509c546377').first()
-            if variousArtists is None:
-                variousArtists = Artist(name=u'Various Artists',
-                                        mbid=u'89ad4ac3-39f7-470e-963a-56509c546377',
-                                        added=now)
-                Session.save(variousArtists)
-                s = _msg(s, 'Committed various artists placeholder')
-            artists['Various Artists'] = variousArtists
-
-        initialLoad = Session.query(Track).count() == 0
+        
+        now = datetime.now()
+        initialLoad = Session.query(AudioFile).count() == 0
         
         if initialLoad:
             s = _msg(s, 'Initial track loading!')
@@ -63,8 +55,8 @@ class LoadController(BaseController):
             
             missing = 0
             changed = 0
-            for track in Session.query(Track):
-                path = os.path.join(BASE, track.filepath)
+            for track in Session.query(AudioFile):
+                path = os.path.join(MUSIC, track.filepath)
                 if os.path.exists(path):
                     size = os.path.getsize(path)
                     mtime = datetime.fromtimestamp(os.path.getmtime(path))
@@ -83,18 +75,19 @@ class LoadController(BaseController):
                     str(datetime.now() - then))
             then = datetime.now()
             
-            filepaths = set(map(lambda t: t.filepath, Session.query(Track)))
+            filepaths = set(map(lambda t: t.filepath, Session.query(AudioFile)))
             s = _msg(s, 'Querying for all filepaths took ' + str(datetime.now() - then))
         
         then = datetime.now()
         
         added = 0
+        skippedNoMBID = 0
         
-        for dirname, dirnames, filenames in os.walk(BASE):
-            localAlbums = {}
+        for dirname, dirnames, filenames in os.walk(MUSIC, followlinks=True):
+
             for filename in filenames:
             
-                filepath = os.path.join(os.path.relpath(dirname, BASE), filename).decode('utf-8')
+                filepath = os.path.join(os.path.relpath(dirname, MUSIC), filename).decode('utf-8')
                 
                 if not os.path.splitext(filename)[-1].lower() == '.mp3':
                     continue
@@ -116,87 +109,53 @@ class LoadController(BaseController):
                 filemtime = datetime.fromtimestamp(os.path.getmtime(fileabspath))
                 
                 # mp3 length, bitrate, etc.
-                mutagen = MP3(fileabspath, ID3=EasyID3)
+                mutagen = MP3(fileabspath)
                 info = mutagen.info
                 mp3bitrate = info.bitrate
                 mp3samplerate = info.sample_rate
                 mp3length = int(round(info.length))
                 if info.sketchy:
                     raise Exception('sketchy mp3! ' + filename)
+                
+                # brainz!!
+                if RECORDING_MBID_KEY not in mutagen:
+                    skippedNoMBID = skippedNoMBID + 1
+                    continue
+                recordingmbid = mutagen[RECORDING_MBID_KEY].data
+                if not recordingmbid:
+                    skippedNoMBID = skippedNoMBID + 1
+                    continue
+                
+                if RELEASE_MBID_KEY not in mutagen:
+                    skippedNoMBID = skippedNoMBID + 1
+                    continue
+                releasembid = mutagen[RELEASE_MBID_KEY].text[0]
+                if not releasembid or len(mutagen[RELEASE_MBID_KEY].text) > 1:
+                    skippedNoMBID = skippedNoMBID + 1
+                    continue
+                    
+                release = Session.query(MBRelease).filter(MBRelease.gid==releasembid).first()
+                if release is None:
+                    release = Session.query(MBRelease).filter(MBReleaseGIDRedirect.gid==releasembid).first()
+                if release is None:
+                    raise Exception('couldnt find release mbid ' + releasembid)
+                
+                recording = Session.query(MBRecording).filter(MBRecording.gid==recordingmbid).first()
+                if recording is None:
+                    recording = Session.query(MBRecording).filter(MBRecordingGIDRedirect.gid==recordingmbid).first()
+                if recording is None:
+                    raise Exception('couldnt find recording mbid ' + recordingmbid)
 
-                # id3
-                # keys: ['album', 'date', 'version', 'composer', 'title'
-                #        'genre', 'tracknumber', 'lyricist', 'artist']
-
-                id3artist = getid3prop(mutagen, 'artist')
-                id3album = getid3prop(mutagen, 'album')
-                id3title = getid3prop(mutagen, 'title')
-                id3tracknum = getid3prop(mutagen, 'tracknumber')
-                id3date = getid3prop(mutagen, 'date')
-                id3composer = getid3prop(mutagen, 'composer')
-                id3genre = getid3prop(mutagen, 'genre')
-                id3lyricist = getid3prop(mutagen, 'lyricist')
-                
-                # additional musicbrainz related keys: At some point,
-                # should probably switch from easyID3 to ordinary ID3
-                # class to get extra MB relationship data.
-                
-                mbartistid = getid3prop(mutagen,'musicbrainz_albumartistid')
-                mbalbumid = getid3prop(mutagen,'musicbrainz_albumid')
-                mbtrackid = getid3prop(mutagen,'musicbrainz_trackid')
-
-                if not id3artist:
-                    artist = None
-                elif id3artist in artists:
-                    artist = artists[id3artist]
-                else:
-                    if initialLoad:
-                        artistFromDb = None
-                    else:
-                        artistFromDb = Session.query(Artist).filter_by(name=id3artist).first()
-                    if artistFromDb is None:
-                        artist = Artist(name=id3artist,
-                                         mbid=mbartistid,
-                                         added=now)
-                        Session.save(artist)
-                    else:
-                        artist = artistFromDb
-                    artists[id3artist] = artist
-                
-                if not id3album:
-                    album = None
-                elif id3album in localAlbums:
-                    album = localAlbums[id3album]
-                    if artist != album.artist:
-                        album.artist = variousArtists
-                else:
-                    album = Album(name=id3album,
-                                  artist=artist,
-                                  added=now,
-                                  mbid=mbalbumid)
-                    Session.save(album)
-                    albums[id3album] = album
-                    localAlbums[id3album] = album
-                
-                track = Track(artist=artist,
-                              album=album,
-                              filepath=filepath,
+                track = AudioFile(filepath=filepath,
                               filesize=filesize,
                               filemtime=filemtime,
                               mp3bitrate=mp3bitrate,
                               mp3samplerate=mp3samplerate,
                               mp3length=mp3length,
-                              id3artist=id3artist,
-                              id3album=id3album,
-                              id3title=id3title,
-                              id3tracknum=id3tracknum,
-                              id3date=id3date,
-                              id3composer=id3composer,
-                              id3genre=id3genre,
-                              id3lyricist=id3lyricist,
+                              recording=recording,
+                              release=release,
                               added=now,
-                              mbid=mbtrackid,
-                              )
+                )
                 Session.save(track)
         
         if commit:
@@ -204,9 +163,8 @@ class LoadController(BaseController):
             then = datetime.now()
             
             Session.commit()
-            s = _msg(s, """Committed %(added)d new tracks, %(numArtists)d new artists, %(numAlbums)d new albums""" \
-                   % {'added':added, 'numArtists': len(artists), 'numAlbums': len(albums)} + \
-                   ', took ' + str(datetime.now() - then))
+            s = _msg(s, """Committed %(added)d new tracks, skipped %(skipped)d""" \
+                   % {'added':added-skippedNoMBID, 'skipped':skippedNoMBID} + ', took ' + str(datetime.now() - then))
         else:
             s = _msg(s, 'Saw ' + str(added) + ' new tracks, took ' + str(datetime.now() - then))
         return s

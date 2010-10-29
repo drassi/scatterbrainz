@@ -8,12 +8,18 @@ def filepath(track):
 
 def artist(track):
     return track.id3artist
+
+def artistid(track):
+    return track.artistid
     
 def title(track):
     return track.id3title
 
 def album(track):
     return track.id3album
+
+def albumid(track):
+    return track.albumid
 
 def tracknum(track):
     return track.getTrackNum() or ''

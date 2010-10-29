@@ -23,19 +23,19 @@ DeclarativeBase = declarative_base(metadata=metadata)
 
 # This is the association table for the many-to-many relationship between
 # groups and permissions.
-group_permission_table = Table('group_permission', metadata,
-    Column('group_id', Integer, ForeignKey('group.group_id',
+group_permission_table = Table('scatterbrainz_group_permission', metadata,
+    Column('group_id', Integer, ForeignKey('scatterbrainz_group.group_id',
         onupdate="CASCADE", ondelete="CASCADE")),
-    Column('permission_id', Integer, ForeignKey('permission.permission_id',
+    Column('permission_id', Integer, ForeignKey('scatterbrainz_permission.permission_id',
         onupdate="CASCADE", ondelete="CASCADE"))
 )
 
 # This is the association table for the many-to-many relationship between
 # groups and members - this is, the memberships.
-user_group_table = Table('user_group', metadata,
-    Column('user_id', Integer, ForeignKey('user.user_id',
+user_group_table = Table('scatterbrainz_user_group', metadata,
+    Column('user_id', Integer, ForeignKey('scatterbrainz_user.user_id',
         onupdate="CASCADE", ondelete="CASCADE")),
-    Column('group_id', Integer, ForeignKey('group.group_id',
+    Column('group_id', Integer, ForeignKey('scatterbrainz_group.group_id',
         onupdate="CASCADE", ondelete="CASCADE"))
 )
 
@@ -43,7 +43,7 @@ user_group_table = Table('user_group', metadata,
 
 class Group(DeclarativeBase):
     """An ultra-simple group definition."""
-    __tablename__ = 'group'
+    __tablename__ = 'scatterbrainz_group'
 
     group_id = Column(Integer, autoincrement=True, primary_key=True)
 
@@ -58,7 +58,7 @@ class User(DeclarativeBase):
     attributes.
     
     """
-    __tablename__ = 'user'
+    __tablename__ = 'scatterbrainz_user'
 
     user_id = Column(Integer, autoincrement=True, primary_key=True)
     
@@ -119,7 +119,7 @@ class User(DeclarativeBase):
 
 class Permission(DeclarativeBase):
     """A relationship that determines what each Group can do"""
-    __tablename__ = 'permission'
+    __tablename__ = 'scatterbrainz_permission'
 
     permission_id = Column(Integer, autoincrement=True, primary_key=True)
 

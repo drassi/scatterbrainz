@@ -11,7 +11,7 @@ import scatterbrainz.lib.helpers
 from scatterbrainz.config.routing import make_map
 from scatterbrainz.model import init_model
 
-from scatterbrainz.services.albumartworker import start_albumartworker
+#from scatterbrainz.services.albumartworker import start_albumartworker
 
 def load_environment(global_conf, app_conf):
     """Configure the Pylons environment via the ``pylons.config``

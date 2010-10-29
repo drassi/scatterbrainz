@@ -16,7 +16,7 @@ def setup_app(command, conf, vars):
 
     # Create the tables if they don't already exist
     log.info("Creating tables")
-    meta.metadata.create_all(bind=meta.engine,checkfirst=False)
+    meta.metadata.create_all(bind=meta.engine)
     log.info("Tables created")
     
     session = Session()

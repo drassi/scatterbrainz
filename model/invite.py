@@ -7,7 +7,7 @@ from scatterbrainz.model.meta import metadata
 Base = declarative_base(metadata=metadata)
 class Invite(Base):
 
-    __tablename__ = 'invites'
+    __tablename__ = 'scatterbrainz_invites'
 
     id = Column(Integer, primary_key=True)
     who = Column(Unicode, nullable=False)

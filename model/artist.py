@@ -1,27 +1,22 @@
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy import Column, Integer, String, Unicode, DateTime
+from sqlalchemy.databases.postgres import PGUuid
 
 from scatterbrainz.model.meta import metadata
 
 Base = declarative_base(metadata=metadata)
 class Artist(Base):
 
-    __tablename__ = 'artists'
+    __tablename__ = 'scatterbrainz_artists'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(Unicode, nullable=False)
-    mbid = Column(Unicode)
-    added = Column(DateTime, nullable=False)
+    name = Column(u'artist_name', Unicode(), primary_key=True)
+    sortname = Column(u'artist_sort_name', Unicode(), nullable=False)
+    mbid = Column(u'artist_mbid', Unicode(), nullable=False)
 
-    def __init__(self, name, mbid, added):
-        self.name = name
-        self.mbid = mbid
-        self.added = added
-    
     def toTreeJSON(self, children=None):
         json = {
-                'attributes': {'id'   : self.__class__.__name__ + '/' + str(self.id),
+                'attributes': {'id'   : self.__class__.__name__ + '_' + str(self.mbid),
                                'class': 'browsenode',
                                'rel'  : self.__class__.__name__
                               },
