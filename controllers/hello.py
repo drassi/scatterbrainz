@@ -34,6 +34,7 @@ from scatterbrainz.config.config import Config
 
 from scatterbrainz.services import albumart
 from scatterbrainz.services import lyrics as lyricsservice
+from scatterbrainz.services import artistbio
 from scatterbrainz.lib import pylast
 
 from repoze.what.predicates import has_permission
@@ -360,7 +361,9 @@ class HelloController(BaseController):
                       .all()
         urls = self._mapify(urls)
         if 'wikipedia' in urls:
-            json['wikipedia'] = urls['wikipedia'][0]
+            wurl = urls['wikipedia'][0]
+            json['wikipedia'] = wurl
+            json['bio'] = artistbio.get_artist_bio(Session, artistMbid,  wurl)
         if 'youtube' in urls:
             json['youtube'] = urls['youtube'][0]
         if 'official homepage' in urls:

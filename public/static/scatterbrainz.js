@@ -744,12 +744,6 @@ function populatePlayingTrackInfo(row) {
             expandHeightToFitBrowser($('#nowPlayingTrackLyrics'));
         }
     );
-    /*if ('bio' in data) {
-                $('#nowPlayingArtistBio').html(data['bio']);
-            } else {
-                $('#nowPlayingArtistBio').html('');
-            }expandHeightToFitBrowser($('#nowPlayingArtistBio'));
-            */
     $.getJSON(
         '/hello/getArtistImagesAJAX',
         {'trackid': trackid},
@@ -826,6 +820,12 @@ function populatePlayingTrackInfo(row) {
                                                           .attr('href',data['official'])
                                                           .append('[Official]'));
             }
+            if ('bio' in data) {
+                $('#nowPlayingArtistBio').html(data['bio']);
+            } else {
+                $('#nowPlayingArtistBio').html('');
+            }
+            expandHeightToFitBrowser($('#nowPlayingArtistBio'));
         }
     );
 }

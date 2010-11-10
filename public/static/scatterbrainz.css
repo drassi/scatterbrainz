@@ -8,6 +8,10 @@ body {
     background: #3689e6 url('/static/icons/clouds.png') no-repeat center top;
 }
 
+p {
+    margin: 0px 0px 1em 0px;
+}
+
 .selected {
     background-color: #D2E3FF !important;
 }
@@ -396,7 +400,7 @@ div#nowPlayingArtistInfo {
 }
 
 div#nowPlayingArtistBio {
-    margin-top: 20px;
+    margin-top: 8px;
     overflow-y: auto;
 }
 
