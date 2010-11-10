@@ -1544,6 +1544,36 @@ class Artist(_BaseObject, _Taggable):
                             )
                         )
         return images
+    
+    def get_images_by_mbid(self, mbid, order=IMAGES_ORDER_POPULARITY, limit=None):
+        """
+            Returns a sequence of Image objects
+            if limit is None it will return all
+            order can be IMAGES_ORDER_POPULARITY or IMAGES_ORDER_DATE
+        """
+        
+        images = []
+        
+        params = {'mbid': mbid}
+        params["order"] = order
+        nodes = _collect_nodes(limit, self, "artist.getImages", True, params)
+        for e in nodes:
+            if _extract(e, "name"):
+                user = User(_extract(e, "name"), self.network)
+            else:
+                user = None
+                
+            images.append(Image(
+                            _extract(e, "title"),
+                            _extract(e, "url"),
+                            _extract(e, "dateadded"),
+                            _extract(e, "format"),
+                            user,
+                            ImageSizes(*_extract_all(e, "size")),
+                            (_extract(e, "thumbsup"), _extract(e, "thumbsdown"))
+                            )
+                        )
+        return images
 
     def get_shouts(self, limit=50):
         """

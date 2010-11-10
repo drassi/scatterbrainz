@@ -22,6 +22,11 @@ from scatterbrainz.model.artist import Artist
 from scatterbrainz.model.track import Track
 from scatterbrainz.model.invite import Invite
 from scatterbrainz.model.auth import User, Group, Permission
+from scatterbrainz.model.musicbrainz import *
+from scatterbrainz.model.albumart import AlbumArt
+from scatterbrainz.model.albumartattempt import AlbumArtAttempt
+from scatterbrainz.model.lyrics import Lyrics
+from scatterbrainz.model.lyricsattempt import LyricsAttempt
 
 artist_albums = sa.Table('scatterbrainz_artist_albums', meta.metadata,
     sa.Column('artist_mbid', PGUuid, sa.ForeignKey('scatterbrainz_artists.artist_mbid')),

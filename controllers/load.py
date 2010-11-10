@@ -11,8 +11,6 @@ from scatterbrainz.lib.base import BaseController, render
 
 from scatterbrainz.model.meta import Session
 from scatterbrainz.model.audiofile import AudioFile
-#from scatterbrainz.model.artist import Artist
-#from scatterbrainz.model.album import Album
 from scatterbrainz.model.musicbrainz import *
 
 log = logging.getLogger(__name__)
@@ -136,15 +134,31 @@ class LoadController(BaseController):
                     
                 release = Session.query(MBRelease).filter(MBRelease.gid==releasembid).first()
                 if release is None:
-                    release = Session.query(MBRelease).filter(MBReleaseGIDRedirect.gid==releasembid).first()
+                    release = Session.query(MBRelease) \
+                                     .join(MBReleaseGIDRedirect) \
+                                     .filter(MBReleaseGIDRedirect.gid==releasembid) \
+                                     .first()
                 if release is None:
-                    raise Exception('couldnt find release mbid ' + releasembid)
+                    log.error('couldnt find release mbid ' + releasembid)
+                    continue
                 
                 recording = Session.query(MBRecording).filter(MBRecording.gid==recordingmbid).first()
                 if recording is None:
-                    recording = Session.query(MBRecording).filter(MBRecordingGIDRedirect.gid==recordingmbid).first()
+                    recording = Session.query(MBRecording) \
+                                       .join(MBRecordingGIDRedirect) \
+                                       .filter(MBRecordingGIDRedirect.gid==recordingmbid) \
+                                       .first()
                 if recording is None:
-                    raise Exception('couldnt find recording mbid ' + recordingmbid)
+                    log.error('couldnt find recording mbid ' + recordingmbid)
+                    continue
+                    
+                existing = Session.query(AudioFile) \
+                                  .filter(AudioFile.recordingmbid==recording.gid) \
+                                  .filter(AudioFile.releasembid==release.gid) \
+                                  .first()
+                if existing:
+                    log.error('already existing recording/release combo for file ' + filepath)
+                    continue
 
                 track = AudioFile(filepath=filepath,
                               filesize=filesize,

@@ -12,13 +12,15 @@ class Track(Base):
 
     __tablename__ = 'scatterbrainz_tracks'
     
-    fileid = Column(u'file_id', Integer(), ForeignKey('scatterbrainz_files.id'), primary_key=True)
+    id = Column(u'stable_id', Unicode, primary_key=True)
+    fileid = Column(u'file_id', Integer(), ForeignKey('scatterbrainz_files.id'), primary_key=False)
     mbid = Column(u'track_mbid', PGUuid(), nullable=False)
     albumid = Column(u'release_group_mbid', PGUuid(), ForeignKey('scatterbrainz_albums.release_group_mbid'), nullable=False)
     name = Column(u'track_name', Unicode, nullable=False)
     tracknum = Column(u'track_number', Integer(), nullable=False)
     discnum = Column(u'disc_number', Integer())
-    release_name = Column(u'release_name', Unicode, nullable=False)
+    releasename = Column(u'release_name', Unicode, nullable=False)
+    artistcredit = Column(u'artist_credit_name', Unicode, nullable=False)
     
     def __init__(self, filepath, filesize, filemtime, mp3bitrate,
                  mp3samplerate, mp3length, release, recording, added):
@@ -33,11 +35,11 @@ class Track(Base):
         self.added = added
     
     def toPlaylistJSON(self):
-        return dict(id = self.fileid,
+        return dict(id = self.id,
                     title = self.name,
-                    artist = self.album.getArtistNames(),
+                    artist = self.artistcredit,
                     artistid = '???',
-                    album = self.release_name,
+                    album = self.releasename,
                     albumid = self.albumid,
                     tracknum = self.tracknum or '',
                     discnum = self.discnum or '',
@@ -47,7 +49,7 @@ class Track(Base):
     
     def toTreeJSON(self):
         json = {
-                'attributes': {'id'   : self.__class__.__name__ + '_' + str(self.fileid),
+                'attributes': {'id'   : self.__class__.__name__ + '_' + str(self.id),
                                'class': 'browsenode',
                                'rel'  : self.__class__.__name__
                               },

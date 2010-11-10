@@ -35,7 +35,10 @@ $(document).ready(function(){
         callback : { 
             beforedata : function (n, t) {
                 return { id : $(n).attr("id") || 'init' };
-            }
+            },
+            
+            onopen : onTreeNodeOpen
+            
         },
         ui : {
             theme_name : 'default'
@@ -362,19 +365,6 @@ $(document).ready(function(){
         $(window).resize();
     }, 100);
     
-    // Detect an overrun VBR
-    setInterval(function() {
-        var t = $('.playing .length');
-        if (t.length > 0) {
-            sp = t.text().split(':');
-            var m = Number(sp[0]);
-            var s = Number(sp[1]);
-            if (audio.currentTime > 60*m + s) {
-                playListNextAndScrobble();
-            }
-        }
-    }, 5000);
-    
     var idsearch = window.location.href.match(/id=.*\/\d+/);
     if (idsearch != null) {
         var id = idsearch[0].split('=')[1];
@@ -534,7 +524,9 @@ function searchCallback(results) {
             beforedata : function (n, t) {
                 if(n == false) t.settings.data.opts.static = results;
                 return { id : $(n).attr("id") || 'init' };
-            }
+            },
+            
+            onopen : onTreeNodeOpen
         },
         ui : {
             theme_name : 'default'
@@ -576,6 +568,21 @@ function searchCallback(results) {
     });
 }
 
+function onTreeNodeOpen(node, treeObj) {
+    var node = $(node);
+    if (node.data('initialized')) {
+        return;
+    } else {
+        node.data('initialized',true);
+    }
+    if (node.attr('rel') == 'Artist') {
+        $.each(node.find('li[rel=Album]'), function() {
+            var self = $(this);
+            self.append($('<span>').addClass('albumYear').text(self.attr('year')));
+        });
+    }
+}
+
 function ditchSearch() {
     $('#searchInput').attr('value', '');
     $('#browser').show();
@@ -593,7 +600,7 @@ function playRow(row) {
     row.addClass('playing');
     setDocumentTitle($('.artist', row).text() + ' - ' +
         $('.title', row).text());
-    populatePlayingTrackInfo(row.attr('id'));
+    populatePlayingTrackInfo(row);
     $('#play').hide();
     $('#pause').show();
 }
@@ -695,24 +702,20 @@ function playAJAXCallback(data) {
     last.next('.song').dblclick();
 }
 
-function populatePlayingTrackInfo(trackid) {
-    $.getJSON(
-        '/hello/getTrackInfoAJAX',
-        {'trackid': trackid},
-        function(data) {
-            $('#playingArtist').html(data['artist']);
-            $('#nowPlayingArtistHeader').html(data['artist']);
-            $('#playingAlbum').html(data['album']);
-            $('#nowPlayingAlbumHeader').html(data['album']);
-            $('#playingTrack').html(data['track']);
-            $('#nowPlayingTrackHeader').html(data['track']);
-            if ('asin' in data) {
-                $('#nowPlayingAlbumInfo').html('<a target="_blank" href="http://www.amazon.com/dp/' + data['asin'] + '">amazon</a>');
-            } else {
-                $('#nowPlayingAlbumInfo').html('');
-            }
-        }
-    );
+function populatePlayingTrackInfo(row) {
+    var artist = row.children('td.artist').text();
+    $('#playingArtist').text(artist);
+    $('#playingArtist').attr('title', artist);
+    $('#nowPlayingArtistHeader').html(artist);
+    var album = row.children('td.album').text();
+    $('#playingAlbum').text(album);
+    $('#playingAlbum').attr('title', album);
+    $('#nowPlayingAlbumHeader').text(album);
+    var track = row.children('td.title').text();
+    $('#playingTrack').text(track);
+    $('#playingTrack').attr('title', track);
+    $('#nowPlayingTrackHeader').text(track);
+    var trackid = row.attr('id');
     $.getJSON(
         '/hello/getAlbumArtAJAX',
         {'trackid': trackid},
@@ -741,16 +744,16 @@ function populatePlayingTrackInfo(trackid) {
             expandHeightToFitBrowser($('#nowPlayingTrackLyrics'));
         }
     );
-    $.getJSON(
-        '/hello/getArtistInfoAJAX',
-        {'trackid': trackid},
-        function(data) {
-            if ('bio' in data) {
+    /*if ('bio' in data) {
                 $('#nowPlayingArtistBio').html(data['bio']);
             } else {
                 $('#nowPlayingArtistBio').html('');
-            }
-            expandHeightToFitBrowser($('#nowPlayingArtistBio'));
+            }expandHeightToFitBrowser($('#nowPlayingArtistBio'));
+            */
+    $.getJSON(
+        '/hello/getArtistImagesAJAX',
+        {'trackid': trackid},
+        function(data) {
             $('#nowPlayingArtistImageContainer').empty();
             if ('images' in data && data['images'].length > 0) {
                 $('#nowPlayingArtistImageContainer').append(
@@ -767,6 +770,61 @@ function populatePlayingTrackInfo(trackid) {
                 $('#nowPlayingArtistImageContainer').append(
                     $('<img class="nowPlayingArtistImage" src="/static/icons/artistimageunavailable.jpg">')
                 );
+            }
+        }
+    );
+    $.getJSON(
+        '/hello/getAlbumInfoAJAX',
+        {'trackid': trackid},
+        function(data) {
+            $('#nowPlayingAlbumInfo').empty();
+            if ('wikipedia' in data) {
+                $('#nowPlayingAlbumInfo').append($('<a>').attr('target','_blank')
+                                                         .attr('href',data['wikipedia'])
+                                                         .append($('<img>').addClass('linkicon')
+                                                                           .attr('src','/static/icons/wiki.png')));
+            }
+            if ('musicbrainz' in data) {
+                $('#nowPlayingAlbumInfo').append($('<a>').attr('target','_blank')
+                                                         .attr('href',data['musicbrainz'])
+                                                         .append($('<img>').addClass('linkicon')
+                                                                           .attr('src','/static/icons/mb.png')));
+            }
+            if ('amazon' in data) {
+                $('#nowPlayingAlbumInfo').append($('<a>').attr('target','_blank')
+                                                         .attr('href',data['amazon'])
+                                                         .append($('<img>').addClass('linkicon')
+                                                                           .attr('src','/static/icons/amazon.png')));
+            }
+        }
+    );
+    $.getJSON(
+        '/hello/getArtistInfoAJAX',
+        {'trackid': trackid},
+        function(data) {
+            $('#nowPlayingArtistInfo').empty();
+            if ('wikipedia' in data) {
+                $('#nowPlayingArtistInfo').append($('<a>').attr('target','_blank')
+                                                          .attr('href',data['wikipedia'])
+                                                          .append($('<img>').addClass('linkicon')
+                                                                            .attr('src','/static/icons/wiki.png')));
+            }
+            if ('musicbrainz' in data) {
+                $('#nowPlayingArtistInfo').append($('<a>').attr('target','_blank')
+                                                          .attr('href',data['musicbrainz'])
+                                                          .append($('<img>').addClass('linkicon')
+                                                                            .attr('src','/static/icons/mb.png')));
+            }
+            if ('youtube' in data) {
+                $('#nowPlayingArtistInfo').append($('<a>').attr('target','_blank')
+                                                          .attr('href',data['youtube'])
+                                                          .append($('<img>').addClass('linkicon')
+                                                                            .attr('src','/static/icons/yt.png')));
+            }
+            if ('official' in data) {
+                $('#nowPlayingArtistInfo').append($('<a>').attr('target','_blank')
+                                                          .attr('href',data['official'])
+                                                          .append('[Official]'));
             }
         }
     );

@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 
-from sqlalchemy import Column, Integer, String, Unicode, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Unicode, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.databases.postgres import PGUuid
 
 from scatterbrainz.model.meta import metadata
@@ -12,6 +12,7 @@ Base = declarative_base(metadata=metadata)
 class AudioFile(Base):
 
     __tablename__ = 'scatterbrainz_files'
+    __table_args__ = (UniqueConstraint('releasembid','recordingmbid'),{})
 
     id = Column(Integer, primary_key=True)
     

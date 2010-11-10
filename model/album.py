@@ -14,6 +14,7 @@ class Album(Base):
 
     mbid = Column(u'release_group_mbid', PGUuid(), primary_key=True)
     name = Column(u'release_group_name', Unicode(), nullable=False)
+    artistcredit = Column(u'artist_credit_name', Unicode(), nullable=False)
     year = Column(u'release_group_year', Integer())
     month = Column(u'release_group_month', Integer())
     day = Column(u'release_group_day', Integer())
@@ -37,9 +38,10 @@ class Album(Base):
         json = {
                 'attributes': {'id'   : self.__class__.__name__ + '_' + str(self.mbid),
                                'class': 'browsenode',
-                               'rel'  : self.__class__.__name__
+                               'rel'  : self.__class__.__name__,
+                               'year' : self.year or '?'
                               },
-                'data': self.name or "&nbsp;", # jstree bug triggers on null or ""
+                'data': self.name,
                 'state' : 'closed'
                }
         if children is not None:
