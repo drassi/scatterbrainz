@@ -14,8 +14,9 @@ def get_album_summary(Session, albumMbid, wikiURL):
     else:
         try:
             Session.begin()
-            html = unicode(wikipedia.get_summary(wikiURL))
-            summary = AlbumSummary(albumMbid, html, unicode(wikiURL), datetime.now())
+            html, fishy = wikipedia.get_summary(wikiURL)
+            html = unicode(html)
+            summary = AlbumSummary(albumMbid, html, unicode(wikiURL), fishy, datetime.now())
             Session.add(summary)
             Session.commit()
             return html

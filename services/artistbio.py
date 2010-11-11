@@ -1,8 +1,11 @@
+import logging
 from datetime import datetime
 
 from scatterbrainz.services import wikipedia
 
 from scatterbrainz.model.artistbio import ArtistBio
+
+log = logging.getLogger(__name__)
 
 def get_artist_bio(Session, artistMbid, wikiURL):
     bio = Session.query(ArtistBio).filter_by(mbid=artistMbid).first()
@@ -11,8 +14,9 @@ def get_artist_bio(Session, artistMbid, wikiURL):
     else:
         try:
             Session.begin()
-            html = unicode(wikipedia.get_summary(wikiURL))
-            bio = ArtistBio(artistMbid, html, unicode(wikiURL), datetime.now())
+            html, fishy = wikipedia.get_summary(wikiURL)
+            html = unicode(html)
+            bio = ArtistBio(artistMbid, html, unicode(wikiURL), fishy, datetime.now())
             Session.add(bio)
             Session.commit()
             return html

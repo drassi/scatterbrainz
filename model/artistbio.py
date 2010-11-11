@@ -15,11 +15,13 @@ class ArtistBio(Base):
     mbid = Column(u'artist_mbid', PGUuid(), ForeignKey('artist.gid'), primary_key=True)
     bio = Column(u'bio', Unicode(), nullable=False)
     original_url = Column(u'original_url', Unicode(), nullable=False)
+    fishy = Column(u'fishy', Boolean(), nullable=False)
     updated = Column(u'added', DateTime(), nullable=False)
 
-    def __init__(self, mbid, bio, original_url, updated):
+    def __init__(self, mbid, bio, original_url, fishy, updated):
         self.mbid = mbid
         self.bio = bio
         self.original_url = original_url
+        self.fishy = fishy
         self.updated = updated
 

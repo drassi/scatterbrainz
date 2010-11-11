@@ -16,7 +16,8 @@ def get_summary(url):
     req = urllib2.Request(url)
     req.add_header("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.11 Safari/534.10")
     log.info('[wiki] hitting ' + url)
-    page = lxml.parse(urllib2.urlopen(req)).getroot()
+    handle = urllib2.urlopen(req)
+    page = lxml.parse(handle).getroot()
     bodyContent = page.cssselect('#bodyContent')[0]
     bodyContent.make_links_absolute()
     for a in bodyContent.cssselect('a'):
@@ -29,5 +30,6 @@ def get_summary(url):
             summary = summary + lxml.tostring(child)
         if child.tag == 'table' and 'class' in child.attrib and child.attrib['class'] == 'toc':
             break
-    return summary
+    fishy = (url != handle.geturl()) or 'Disambiguation' in lxml.tostring(page)
+    return summary, fishy
 
