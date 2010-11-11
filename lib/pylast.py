@@ -1410,6 +1410,25 @@ class Artist(_BaseObject, _Taggable):
             artists.append(SimilarItem(Artist(names[i], self.network), _number(matches[i]), mbid[i]))
         
         return artists
+    
+    def get_similar_by_mbid(self, mbid, limit = None):
+        """Returns the similar artists on the network."""
+        
+        params = {'mbid' : mbid}
+        if limit:
+            params['limit'] = _unicode(limit)
+        
+        doc = self._request('artist.getSimilar', True, params)
+        
+        names = _extract_all(doc, "name")
+        matches = _extract_all(doc, "match")
+        mbid = _extract_all(doc, "mbid")
+        
+        artists = []
+        for i in range(0, len(names)):
+            artists.append(SimilarItem(Artist(names[i], self.network), _number(matches[i]), mbid[i]))
+        
+        return artists
 
     def get_top_albums(self):
         """Retuns a list of the top albums."""

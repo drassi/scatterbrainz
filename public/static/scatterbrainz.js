@@ -699,7 +699,6 @@ function playAJAXCallback(data) {
     var last = $('.song:last');
     $(document).data('playlistDropTarget', null);
     addToPlaylistCallback(data);
-    last.next('.song').dblclick();
 }
 
 function populatePlayingTrackInfo(row) {
