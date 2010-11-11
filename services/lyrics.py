@@ -3,6 +3,7 @@ import time
 import urllib
 import logging
 import simplejson
+import unicodedata
 from datetime import datetime, timedelta
 
 from scatterbrainz.model.lyrics import Lyrics
@@ -23,8 +24,8 @@ def get_lyrics(Session, track):
         
             Session.begin()
             try:
-                title = track.name
-                artist = track.artistcredit
+                title = unicodedata.normalize('NFKD', track.name).encode('ascii', 'ignore')
+                artist = unicodedata.normalize('NFKD', track.artistcredit).encode('ascii', 'ignore')
                 params = {
                     'artist' : artist,
                     'song'   : title,

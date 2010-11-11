@@ -323,17 +323,19 @@ class HelloController(BaseController):
         json = {}
         albumMbid = track.album.mbid
         # get wikipedia from the release group
-        wikipedia = Session.query(MBURL) \
+        wikipedia = Session.query(MBURL.url) \
                            .join(MBLReleaseGroupURL) \
                            .join(MBLink) \
                            .join(MBLinkType) \
                            .filter(MBLinkType.name=='wikipedia') \
                            .join(MBReleaseGroup) \
                            .filter(MBReleaseGroup.gid==albumMbid) \
-                           .first()
+                           .all()
+        wikipedia = filter(self._filterForEnglishWiki, map(lambda x: x[0], wikipedia))
         if wikipedia:
-            json['wikipedia'] = wikipedia.url
-            json['summary'] = albumsummary.get_album_summary(Session, albumMbid, wikipedia.url)
+            wurl = wikipedia[0]
+            json['wikipedia'] = wurl
+            json['summary'] = albumsummary.get_album_summary(Session, albumMbid, wurl)
         # get amazon from any of the releases
         amazon = Session.query(MBURL) \
                         .join(MBLReleaseURL) \
@@ -363,15 +365,20 @@ class HelloController(BaseController):
                       .all()
         urls = self._mapify(urls)
         if 'wikipedia' in urls:
-            wurl = urls['wikipedia'][0]
-            json['wikipedia'] = wurl
-            json['bio'] = artistbio.get_artist_bio(Session, artistMbid,  wurl)
+            wurls = filter(self._filterForEnglishWiki, urls['wikipedia'])
+            if wurls:
+                wurl = wurls[0]
+                json['wikipedia'] = wurl
+                json['bio'] = artistbio.get_artist_bio(Session, artistMbid,  wurl)
         if 'youtube' in urls:
             json['youtube'] = urls['youtube'][0]
         if 'official homepage' in urls:
             json['official'] = urls['official homepage'][0]
         json['musicbrainz'] = 'http://test.musicbrainz.org/artist/' + artistMbid
         return simplejson.dumps(json)
+    
+    def _filterForEnglishWiki(self, url):
+        return url.startswith('http://en.wikipedia.org')
     
     def _mapify(self, urls):
         m = {}
