@@ -35,6 +35,7 @@ from scatterbrainz.config.config import Config
 from scatterbrainz.services import albumart
 from scatterbrainz.services import lyrics as lyricsservice
 from scatterbrainz.services import artistbio
+from scatterbrainz.services import albumsummary
 from scatterbrainz.lib import pylast
 
 from repoze.what.predicates import has_permission
@@ -177,7 +178,7 @@ class HelloController(BaseController):
     
     def searchAJAX(self):
         search = request.params['search']
-        maxResults = 50
+        maxResults = 100
         tsquery = ' & '.join(search.split())
         artists = Session.query(Artist) \
                          .filter(self.ARTIST_SEARCH) \
@@ -332,6 +333,7 @@ class HelloController(BaseController):
                            .first()
         if wikipedia:
             json['wikipedia'] = wikipedia.url
+            json['summary'] = albumsummary.get_album_summary(Session, albumMbid, wikipedia.url)
         # get amazon from any of the releases
         amazon = Session.query(MBURL) \
                         .join(MBLReleaseURL) \

@@ -9,10 +9,14 @@ def get_artist_bio(Session, artistMbid, wikiURL):
     if bio:
         return bio.bio
     else:
-        Session.begin()
-        html = unicode(wikipedia.get_summary(wikiURL))
-        bio = ArtistBio(artistMbid, html, wikiURL, datetime.now())
-        Session.add(bio)
-        Session.commit()
-        return html
-    
+        try:
+            Session.begin()
+            html = unicode(wikipedia.get_summary(wikiURL))
+            bio = ArtistBio(artistMbid, html, unicode(wikiURL), datetime.now())
+            Session.add(bio)
+            Session.commit()
+            return html
+        except Exception, e:
+            log.error('is wikipedia down for everyone or just me? ' + e.__repr__())
+            return ''
+

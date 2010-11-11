@@ -18,13 +18,13 @@ def get_art(Session, album):
     else:
         now = datetime.now()
         albumArtAttempt = Session.query(AlbumArtAttempt).filter_by(mbid=albumMbid).first()
+        albumArtFilename = None
         if albumArtAttempt is None or now > albumArtAttempt.tried + timedelta(days=30):
             
             Session.begin()
             try:
                 artistName = album.artistcredit
                 albumName = album.name
-                albumArtFilename = None
                 albumArtURL = None
                 numResults = None
                 if artistName == 'Various Artists':

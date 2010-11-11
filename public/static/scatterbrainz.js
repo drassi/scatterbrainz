@@ -790,6 +790,12 @@ function populatePlayingTrackInfo(row) {
                                                          .append($('<img>').addClass('linkicon')
                                                                            .attr('src','/static/icons/amazon.png')));
             }
+            if ('summary' in data) {
+                $('#nowPlayingAlbumSummary').html(data['summary']);
+            } else {
+                $('#nowPlayingAlbumSummary').html('');
+            }
+            expandHeightToFitBrowser($('#nowPlayingAlbumSummary'));
         }
     );
     $.getJSON(
@@ -818,7 +824,8 @@ function populatePlayingTrackInfo(row) {
             if ('official' in data) {
                 $('#nowPlayingArtistInfo').append($('<a>').attr('target','_blank')
                                                           .attr('href',data['official'])
-                                                          .append('[Official]'));
+                                                          .append($('<img>').addClass('linkicon')
+                                                                            .attr('src','/static/icons/official.png')));
             }
             if ('bio' in data) {
                 $('#nowPlayingArtistBio').html(data['bio']);

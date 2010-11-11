@@ -28,6 +28,7 @@ from scatterbrainz.model.albumartattempt import AlbumArtAttempt
 from scatterbrainz.model.lyrics import Lyrics
 from scatterbrainz.model.lyricsattempt import LyricsAttempt
 from scatterbrainz.model.artistbio import ArtistBio
+from scatterbrainz.model.albumsummary import AlbumSummary
 
 artist_albums = sa.Table('scatterbrainz_artist_albums', meta.metadata,
     sa.Column('artist_mbid', PGUuid, sa.ForeignKey('scatterbrainz_artists.artist_mbid')),
