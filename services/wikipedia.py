@@ -27,7 +27,7 @@ def get_summary(url):
     for child in bodyContent.getchildren():
         if child.tag == 'p':
             summary = summary + lxml.tostring(child)
-        if child.tag == 'table' and child.attrib['class'] == 'toc':
+        if child.tag == 'table' and 'class' in child.attrib and child.attrib['class'] == 'toc':
             break
     return summary
 

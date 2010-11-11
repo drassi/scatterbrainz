@@ -32,7 +32,8 @@ def get_lyrics(Session, track):
                     'fmt'    : 'json',
                 }
                 
-                url = 'http://lyrics.wikia.com/api.php?%s' % urllib.urlencode(params)
+                wikia = 'http://lyrics.wikia.com/'
+                url = wikia + ('api.php?%s' % urllib.urlencode(params))
                 
                 log.info('[lyric] Hitting ' + url)
                 html = urllib.urlopen(url).read()
@@ -40,7 +41,8 @@ def get_lyrics(Session, track):
                 if not "'lyrics':'Not found'" in html:
                     search = re.search("'url':'(?P<url>.*?)'",html)
                     lyricurl = urllib.unquote(search.group('url'))
-                    page = urllib.quote(lyricurl.split('/')[-1])
+                    assert(lyricurl.startswith(wikia))
+                    page = urllib.quote(lyricurl.replace(wikia,''))
                     lyricurl = 'http://lyrics.wikia.com/index.php?title='+page+'&action=edit'
                     log.info('[lyric] Hitting ' + lyricurl)
                     lyrichtml = urllib.urlopen(lyricurl).read()
