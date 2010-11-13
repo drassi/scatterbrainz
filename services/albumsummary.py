@@ -9,9 +9,7 @@ log = logging.getLogger(__name__)
 
 def get_album_summary(Session, albumMbid, wikiURL):
     summary = Session.query(AlbumSummary).filter_by(mbid=albumMbid).first()
-    if summary:
-        return summary.summary
-    else:
+    if not summary:
         try:
             Session.begin()
             html, fishy = wikipedia.get_summary(wikiURL)
@@ -23,4 +21,8 @@ def get_album_summary(Session, albumMbid, wikiURL):
         except Exception, e:
             log.error('is wikipedia down for everyone or just me? ' + e.__repr__())
             return ''
+    if summary.fishy:
+        return ''
+    else:
+        return summary.summary
 
