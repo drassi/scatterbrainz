@@ -26,10 +26,10 @@ def get_summary(url):
         citation.drop_tree()
     summary = ''
     for child in bodyContent.getchildren():
-        if child.tag == 'p':
-            summary = summary + lxml.tostring(child)
-        if child.tag == 'table' and 'class' in child.attrib and child.attrib['class'] == 'toc':
+        if child.cssselect('table.toc'):
             break
-    fishy = (url != handle.geturl()) or 'Disambiguation' in lxml.tostring(page)
+        elif child.tag == 'p':
+            summary = summary + lxml.tostring(child)
+    fishy = (url != handle.geturl()) or 'Category:Disambiguation' in lxml.tostring(page)
     return summary, fishy
 
