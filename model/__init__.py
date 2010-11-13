@@ -29,11 +29,13 @@ from scatterbrainz.model.lyrics import Lyrics
 from scatterbrainz.model.lyricsattempt import LyricsAttempt
 from scatterbrainz.model.artistbio import ArtistBio
 from scatterbrainz.model.albumsummary import AlbumSummary
+from scatterbrainz.model.similarartist import SimilarArtist
 
 artist_albums = sa.Table('scatterbrainz_artist_albums', meta.metadata,
     sa.Column('artist_mbid', PGUuid, sa.ForeignKey('scatterbrainz_artists.artist_mbid')),
     sa.Column('release_group_mbid', PGUuid, sa.ForeignKey('scatterbrainz_albums.release_group_mbid'))
 )
+
 
 Artist.albums = orm.relation(Album, secondary=artist_albums, backref='artists')
 Album.tracks = orm.relation(Track, backref='album')

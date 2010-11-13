@@ -17,7 +17,6 @@ def get_album_summary(Session, albumMbid, wikiURL):
             summary = AlbumSummary(albumMbid, html, unicode(wikiURL), fishy, datetime.now())
             Session.add(summary)
             Session.commit()
-            return html
         except Exception, e:
             log.error('is wikipedia down for everyone or just me? ' + e.__repr__())
             return ''

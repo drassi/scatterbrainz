@@ -36,6 +36,7 @@ from scatterbrainz.services import albumart
 from scatterbrainz.services import lyrics as lyricsservice
 from scatterbrainz.services import artistbio
 from scatterbrainz.services import albumsummary
+from scatterbrainz.services import similarartist
 from scatterbrainz.lib import pylast
 
 from repoze.what.predicates import has_permission
@@ -142,10 +143,8 @@ class HelloController(BaseController):
         track = Session.query(Track).filter_by(id=id).one()
         artists = track.album.artists
         similarMbids = set([])
-        dummyArtist = self.lastfmNetwork.get_artist('')
         for artist in artists:
-            similarArtists = dummyArtist.get_similar_by_mbid(artist.mbid)
-            similarMbids.update(filter(lambda x: x is not None, map(lambda x: x.mbid, similarArtists)))
+            similarMbids.update(similarartist.get_similar_artists(Session, self.lastfmNetwork, artist))
         randomSimilarArtist = Session.query(Artist) \
                                      .join(artist_albums) \
                                      .filter(Artist.mbid.in_(similarMbids)) \
