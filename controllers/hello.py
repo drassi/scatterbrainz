@@ -37,7 +37,9 @@ from scatterbrainz.services import lyrics as lyricsservice
 from scatterbrainz.services import artistbio
 from scatterbrainz.services import albumsummary
 from scatterbrainz.services import similarartist
+
 from scatterbrainz.lib import pylast
+from scatterbrainz.lib.pylast import WSError
 
 from repoze.what.predicates import has_permission
 from repoze.what.plugins.pylonshq import ControllerProtector
@@ -316,10 +318,15 @@ class HelloController(BaseController):
 
     def getArtistImagesAJAX(self):
         trackid = request.params['trackid'].split('_')[1]
-        track = Session.query(Track).filter_by(id=trackid).one()
-        artist = track.album.artists[0]
+        artists = Session.query(MBArtist).join(MBArtistCreditName).join(MBArtistCredit).join(MBRecording).join(AudioFile).join(Track).filter(Track.id==trackid).all()
+        artistMbid = artists[0].gid
         lfmartist = self.lastfmNetwork.get_artist(None)
-        images = lfmartist.get_images_by_mbid(artist.mbid, limit=20)
+        try:
+            images = lfmartist.get_images_by_mbid(artistMbid, limit=20)
+        except WSError, e:
+            log.warn('Got last.fm WSError [' + e.details + '] retrying with string name')
+            artistName = Session.query(MBArtistName.name).join(MBArtist.name).filter(MBArtist.gid==artistMbid).one()[0]
+            images = self.lastfmNetwork.get_artist(artistName).get_images(limit=20)
         return simplejson.dumps({
             'images' : map(lambda i:[i.sizes.largesquare, i.sizes.original], images)
         })
@@ -360,9 +367,8 @@ class HelloController(BaseController):
 
     def getArtistInfoAJAX(self):
         trackid = request.params['trackid'].split('_')[1]
-        track = Session.query(Track).filter_by(id=trackid).one()
         json = {}
-        artistMbid = track.album.artists[0].mbid
+        artistMbid = Session.query(MBArtist).join(MBArtistCreditName).join(MBArtistCredit).join(MBRecording).join(AudioFile).join(Track).filter(Track.id==trackid).first().gid
         urls = Session.query(MBURL.url, MBLinkType.name) \
                       .join(MBLArtistURL) \
                       .join(MBLink) \

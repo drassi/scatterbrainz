@@ -1,6 +1,8 @@
 import logging
 from datetime import datetime
 
+from scatterbrainz.lib.pylast import WSError
+
 from scatterbrainz.model.similarartist import SimilarArtist
 from scatterbrainz.model.musicbrainz import MBArtist
 
@@ -14,7 +16,11 @@ def get_similar_artists(Session, lastfmNetwork, artist):
         now = datetime.now()
         log.info('Hitting last.fm similar artists for ' + artist.name + ' ' + mbid)
         dummyArtist = lastfmNetwork.get_artist('')
-        similarlastfm = dummyArtist.get_similar_by_mbid(artist.mbid)
+        try:
+            similarlastfm = dummyArtist.get_similar_by_mbid(artist.mbid)
+        except WSError, e:
+            log.warn('Got last.fm WSError [' + e.details + '] retrying with string name')
+            similarlastfm = lastfmNetwork.get_artist(artist.name).get_similar()
         similarmbidtomatch = {}
         for lastfmartist in similarlastfm:
             if lastfmartist.mbid is not None:
@@ -25,7 +31,7 @@ def get_similar_artists(Session, lastfmNetwork, artist):
         for similarmbid in similarmbids:
             similarartist = Session.query(MBArtist).filter_by(gid=similarmbid).first()
             if similarartist:
-                Session.add(SimilarArtist(mbid, unicode(similarmbid), similarmbidtomatch[similarmbid], now))
+                Session.add(SimilarArtist(unicode(mbid), unicode(similarmbid), similarmbidtomatch[similarmbid], now))
             else:
                 log.warn('Couldnt find similar artist ' + similarmbid + ' in artists table!')
         Session.commit()
