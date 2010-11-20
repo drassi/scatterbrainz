@@ -141,9 +141,8 @@ class HelloController(BaseController):
         return simplejson.dumps(json)
     
     def similarTrackAJAX(self):
-        id = request.params['id'].split('_')[1]
-        track = Session.query(Track).filter_by(id=id).one()
-        artists = track.album.artists
+        trackid = request.params['id'].split('_')[1]
+        artists = Session.query(MBArtist).join(MBArtistCreditName).join(MBArtistCredit).join(MBRecording).join(AudioFile).join(Track).filter(Track.id==trackid).all()
         similarMbids = set([])
         for artist in artists:
             similarMbids.update(similarartist.get_similar_artists(Session, self.lastfmNetwork, artist))

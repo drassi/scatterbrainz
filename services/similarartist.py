@@ -8,25 +8,26 @@ from scatterbrainz.model.musicbrainz import MBArtist
 
 log = logging.getLogger(__name__)
 
-def get_similar_artists(Session, lastfmNetwork, artist):
-    mbid = artist.mbid
+def get_similar_artists(Session, lastfmNetwork, mbartist):
+    mbid = mbartist.gid
     similarmbids = map(lambda x: x.similar_artist_mbid, Session.query(SimilarArtist).filter_by(artist_mbid=mbid).all())
     if not similarmbids:
         Session.begin()
         now = datetime.now()
-        log.info('Hitting last.fm similar artists for ' + artist.name + ' ' + mbid)
+        log.info('Hitting last.fm similar artists for ' + mbid)
         dummyArtist = lastfmNetwork.get_artist('')
         try:
-            similarlastfm = dummyArtist.get_similar_by_mbid(artist.mbid)
+            similarlastfm = dummyArtist.get_similar_by_mbid(mbid)
         except WSError, e:
-            log.warn('Got last.fm WSError [' + e.details + '] retrying with string name')
-            similarlastfm = lastfmNetwork.get_artist(artist.name).get_similar()
+            artistName = Session.query(MBArtistName.name).join(MBArtist.name).filter(MBArtist.gid==mbid).one()[0]
+            log.warn('Got last.fm WSError [' + e.details + '] retrying with string name ' + artistName)
+            similarlastfm = lastfmNetwork.get_artist(artistName).get_similar()
         similarmbidtomatch = {}
         for lastfmartist in similarlastfm:
             if lastfmartist.mbid is not None:
                 similarmbidtomatch[lastfmartist.mbid] = lastfmartist.match
         if not similarmbidtomatch:
-            log.warn('No similar artists found for ' + artist.name + ' ' + artist.gid)
+            log.warn('No similar artists found for ' + mbid)
         similarmbids = similarmbidtomatch.keys()
         for similarmbid in similarmbids:
             similarartist = Session.query(MBArtist).filter_by(gid=similarmbid).first()
