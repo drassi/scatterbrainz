@@ -65,7 +65,7 @@ def get_lyrics(Session, track):
                                     lyrics = lyricRE.group('lyrics').strip('\n')
                                     if '{{gracenote_takedown}}' in lyrics:
                                         raise Exception('[lyric] Still found takedown lyrics!')
-                                    elif '{{Instrumental}}' in lyrics:
+                                    elif '{{Instrumental}}' or '{{instrumental}}' in lyrics:
                                         foundlyrics = u'(Instrumental)'
                                     else:
                                         foundlyrics = lyrics.replace('\n','<br />').decode('utf-8')
@@ -74,7 +74,7 @@ def get_lyrics(Session, track):
                                     raise Exception('failed lyrics 1!')
                             else:
                                 raise Exception('no pre-takedown lyrics found :(')
-                        elif '{{Instrumental}}' in lyrics:
+                        elif '{{Instrumental}}' or '{{instrumental}}' in lyrics:
                             foundlyrics = u'(Instrumental)'
                         else:
                             foundlyrics = lyrics.replace('\n','<br />').decode('utf-8')
