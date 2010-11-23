@@ -200,7 +200,6 @@ div#dashboard {
     right: 0px;
     border: 3px solid #B0CDFF;
     border-radius: 15px;
-    z-index: 3 !important;
 }
 
 .dashboardIcon:first-child {
