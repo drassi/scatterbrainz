@@ -4,7 +4,7 @@ from datetime import datetime
 from scatterbrainz.lib.pylast import WSError
 
 from scatterbrainz.model.similarartist import SimilarArtist
-from scatterbrainz.model.musicbrainz import MBArtist
+from scatterbrainz.model.musicbrainz import *
 
 log = logging.getLogger(__name__)
 
