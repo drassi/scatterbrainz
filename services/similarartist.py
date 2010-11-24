@@ -37,5 +37,5 @@ def get_similar_artists(Session, lastfmNetwork, mbartist):
                 log.warn('Couldnt find similar artist ' + similarmbid + ' in artists table!')
         Session.commit()
     
-    return similarmbids
+    return map(unicode, similarmbids)
 
