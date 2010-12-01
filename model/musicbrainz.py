@@ -45,18 +45,6 @@ class MBReleaseName(Base):
     
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
     name = Column(u'name', String(length=None, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    
-class MBArtistCreditName(Base):
-
-    __tablename__ = 'artist_credit_name'
-    
-    artistcreditid = Column(u'artist_credit', Integer(), ForeignKey('artist_credit.id'), primary_key=True, nullable=False)
-    position = Column(u'position', SmallInteger(), primary_key=True, nullable=False)
-    artistid = Column(u'artist', Integer(), ForeignKey('artist.id'), primary_key=False, nullable=False)
-    artist = orm.relation(MBArtist)
-    nameid = Column(u'name', Integer(), ForeignKey('artist_name.id'), primary_key=False, nullable=False)
-    name = orm.relation(MBArtistName)
-    joinphrase = Column(u'joinphrase', String(length=32, convert_unicode=False, assert_unicode=None), primary_key=False)
 
 class MBArtistCredit(Base):
 
@@ -67,6 +55,19 @@ class MBArtistCredit(Base):
     name = orm.relation(MBArtistName, backref='artistcredits')
     artistcount = Column(u'artistcount', SmallInteger(), primary_key=False, nullable=False)
     refcount = Column(u'refcount', Integer(), primary_key=False)
+
+class MBArtistCreditName(Base):
+
+    __tablename__ = 'artist_credit_name'
+    
+    artistcreditid = Column(u'artist_credit', Integer(), ForeignKey('artist_credit.id'), primary_key=True, nullable=False)
+    artistcredit = orm.relation(MBArtistCredit)
+    position = Column(u'position', SmallInteger(), primary_key=True, nullable=False)
+    artistid = Column(u'artist', Integer(), ForeignKey('artist.id'), primary_key=False, nullable=False)
+    artist = orm.relation(MBArtist)
+    nameid = Column(u'name', Integer(), ForeignKey('artist_name.id'), primary_key=False, nullable=False)
+    name = orm.relation(MBArtistName)
+    joinphrase = Column(u'joinphrase', String(length=32, convert_unicode=False, assert_unicode=None), primary_key=False)
 
 class MBReleaseGroup(Base):
 

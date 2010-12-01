@@ -383,26 +383,38 @@ $(document).ready(function(){
     }
     
     screenMappings = {
-        'playlistNav' : $('.browsePane, #browsePaneSplitter'),
-        'nowPlayingNav' : $('#nowPlayingContainer')
+        'playlistNav' : {'selector' : $('.browsePane, #browsePaneSplitter')},
+        'nowPlayingNav' : {'selector' : $('#nowPlayingContainer')},
+        'artistNav' : {'selector' : $('#artistBrowserContainer')
+                     , 'callback' : openArtistNav}
     };
     
     $('div#navigation button.screen').click(function() {
-        var self = $(this);
-        if (!self.hasClass('selectedNav')) {
-            var selected = $('.selectedNav');
-            selected.removeClass('selectedNav');
-            self.addClass('selectedNav');
-            screenMappings[selected.attr('id')].fadeOut();
-            screenMappings[self.attr('id')].fadeIn();
-            windowResize();
-        }
+        switchWindow($(this), true);
     });
     
     $('button#logout').click(function() {
         window.location = '/logout_handler';
     });
+    
+    $('a.artistLink').live('click', clickArtistLink);
 });
+
+function switchWindow(self, runCallback) {
+    if (!self.hasClass('selectedNav')) {
+        var selected = $('.selectedNav');
+        selected.removeClass('selectedNav');
+        self.addClass('selectedNav');
+        var windowOut = screenMappings[selected.attr('id')]
+        windowOut['selector'].fadeOut();
+        var windowIn = screenMappings[self.attr('id')];
+        windowIn['selector'].fadeIn();
+        if (runCallback && 'callback' in windowIn) {
+            windowIn['callback']();
+        }
+        windowResize();
+    }
+}
 
 function windowResize(target) {
     $(document).data('windowHeightPx', $(window).height());
@@ -746,25 +758,7 @@ function populatePlayingTrackInfo(row) {
     $.getJSON(
         '/hello/getArtistImagesAJAX',
         {'trackid': trackid},
-        function(data) {
-            $('#nowPlayingArtistImageContainer').empty();
-            if ('images' in data && data['images'].length > 0) {
-                $('#nowPlayingArtistImageContainer').append(
-                    $('<a href="'+data['images'][0][1]+'" rel="artist">')
-                        .append('<img class="nowPlayingArtistImage" src="'+data['images'][0][1]+'">')
-                        .load(function(){expandHeightToFitBrowser($('#nowPlayingArtistBio'));})
-                        .fancybox({speedIn : '100'}));
-                for (var i=1; i<data['images'].length; i++) {
-                    $('#nowPlayingArtistImageContainer').append(
-                        $('<a href="'+data['images'][i][1]+'" rel="artist" style="display: none;">')
-                            .fancybox({speedIn : '100'}));
-                }
-            } else {
-                $('#nowPlayingArtistImageContainer').append(
-                    $('<img class="nowPlayingArtistImage" src="/static/icons/artistimageunavailable.jpg">')
-                );
-            }
-        }
+        populateNowPlayingArtistImages
     );
     $.getJSON(
         '/hello/getAlbumInfoAJAX',
@@ -800,39 +794,125 @@ function populatePlayingTrackInfo(row) {
     $.getJSON(
         '/hello/getArtistInfoAJAX',
         {'trackid': trackid},
-        function(data) {
-            $('#nowPlayingArtistInfo').empty();
-            if ('wikipedia' in data) {
-                $('#nowPlayingArtistInfo').append($('<a>').attr('target','_blank')
-                                                          .attr('href',data['wikipedia'])
-                                                          .append($('<img>').addClass('linkicon')
-                                                                            .attr('src','/static/icons/wiki.png')));
-            }
-            if ('musicbrainz' in data) {
-                $('#nowPlayingArtistInfo').append($('<a>').attr('target','_blank')
-                                                          .attr('href',data['musicbrainz'])
-                                                          .append($('<img>').addClass('linkicon')
-                                                                            .attr('src','/static/icons/mb.png')));
-            }
-            if ('youtube' in data) {
-                $('#nowPlayingArtistInfo').append($('<a>').attr('target','_blank')
-                                                          .attr('href',data['youtube'])
-                                                          .append($('<img>').addClass('linkicon')
-                                                                            .attr('src','/static/icons/yt.png')));
-            }
-            if ('official' in data) {
-                $('#nowPlayingArtistInfo').append($('<a>').attr('target','_blank')
-                                                          .attr('href',data['official'])
-                                                          .append($('<img>').addClass('linkicon')
-                                                                            .attr('src','/static/icons/official.png')));
-            }
-            if ('bio' in data) {
-                $('#nowPlayingArtistBio').html(data['bio']);
-            } else {
-                $('#nowPlayingArtistBio').html('');
-            }
-            expandHeightToFitBrowser($('#nowPlayingArtistBio'));
-        }
+        populateNowPlayingArtistInfo
     );
+}
+
+function openArtistNav() {
+    var nowPlayingTrack = $('.playing');
+    if (!nowPlayingTrack) {
+        return;
+    }
+    var trackid = nowPlayingTrack.attr('id');
+    $.getJSON(
+        '/hello/getArtistFromTrackAJAX',
+        {'trackid': trackid},
+        populateArtistNavCallback
+    );
+}
+
+function populateArtistNavCallback(data) {
+    populateArtistNav(data['mbid']);
+}
+    
+function populateArtistNav(artistMbid) {
+    $.getJSON(
+        '/hello/getArtistImagesAJAX',
+        {'mbid': artistMbid},
+        populateArtistBrowserArtistImages
+    );
+    $.getJSON(
+        '/hello/getArtistInfoAJAX',
+        {'mbid': artistMbid},
+        populateArtistBrowserArtistInfo
+    );
+}
+
+function populateNowPlayingArtistImages(data) {
+    populateArtistImages($('#nowPlayingArtistImageContainer'), data);
+}
+
+function populateArtistBrowserArtistImages(data) {
+    populateArtistImages($('#artistBrowserArtistImageContainer'), data);
+}
+
+function populateArtistImages(container, data) {
+    container.empty();
+    if ('images' in data && data['images'].length > 0) {
+        container.append(
+            $('<a href="'+data['images'][0][1]+'" rel="artist">')
+                .append('<img class="nowPlayingArtistImage" src="'+data['images'][0][1]+'">')
+                .fancybox({speedIn : '100'}));
+        for (var i=1; i<data['images'].length; i++) {
+            container.append(
+                $('<a href="'+data['images'][i][1]+'" rel="artist" style="display: none;">')
+                    .fancybox({speedIn : '100'}));
+        }
+    } else {
+        container.append(
+            $('<img class="nowPlayingArtistImage" src="/static/icons/artistimageunavailable.jpg">')
+        );
+    }
+}
+
+function populateNowPlayingArtistInfo(data) {
+    populateArtistInfo($('#nowPlayingArtistHeader'), $('#nowPlayingArtistInfo'), $('#nowPlayingArtistBio'), data);
+}
+
+function populateArtistBrowserArtistInfo(data) {
+    populateArtistInfo($('#artistBrowserArtistHeader'), $('#artistBrowserArtistInfo'), $('#artistBrowserArtistBio'), data);
+}
+
+function populateArtistInfo(artistHeader, infoContainer, bioContainer, data) {
+    artistHeader.empty();
+    var credit = data['credit'];
+    for (var i=0; i<credit.length;i++) {
+        var c = credit[i];
+        if ('mbid' in c) {
+            artistHeader.append($('<a>').addClass('artistLink')
+                                        .text(c['text'])
+                                        .data('mbid', c['mbid']));
+        } else {
+            artistHeader.append(c['text']);
+        }
+    }
+    infoContainer.empty();
+    if ('wikipedia' in data) {
+        infoContainer.append($('<a>').attr('target','_blank')
+                                                  .attr('href',data['wikipedia'])
+                                                  .append($('<img>').addClass('linkicon')
+                                                                    .attr('src','/static/icons/wiki.png')));
+    }
+    if ('musicbrainz' in data) {
+        infoContainer.append($('<a>').attr('target','_blank')
+                                                  .attr('href',data['musicbrainz'])
+                                                  .append($('<img>').addClass('linkicon')
+                                                                    .attr('src','/static/icons/mb.png')));
+    }
+    if ('youtube' in data) {
+        infoContainer.append($('<a>').attr('target','_blank')
+                                                  .attr('href',data['youtube'])
+                                                  .append($('<img>').addClass('linkicon')
+                                                                    .attr('src','/static/icons/yt.png')));
+    }
+    if ('official' in data) {
+        infoContainer.append($('<a>').attr('target','_blank')
+                                                  .attr('href',data['official'])
+                                                  .append($('<img>').addClass('linkicon')
+                                                                    .attr('src','/static/icons/official.png')));
+    }
+    if ('bio' in data) {
+        bioContainer.html(data['bio']);
+    } else {
+        bioContainer.html('');
+    }
+    expandHeightToFitBrowser(bioContainer);
+}
+
+function clickArtistLink() {
+    var self = $(this);
+    var mbid = self.data('mbid');
+    populateArtistNav(mbid);
+    switchWindow($('button#artistNav'), false);
 }
 

@@ -316,9 +316,14 @@ class HelloController(BaseController):
             self.scrobbler.scrobble(track.id3artist, track.id3title, int(time.time()) - track.mp3length, pylast.SCROBBLE_SOURCE_USER, pylast.SCROBBLE_MODE_PLAYED, track.mp3length, track.id3album, track.getTrackNum())
 
     def getArtistImagesAJAX(self):
-        trackid = request.params['trackid'].split('_')[1]
-        artists = Session.query(MBArtist).join(MBArtistCreditName).join(MBArtistCredit).join(MBRecording).join(AudioFile).join(Track).filter(Track.id==trackid).all()
-        artistMbid = artists[0].gid
+        if 'trackid' in request.params:
+            trackid = request.params['trackid'].split('_')[1]
+            artistCreditNames = self._getArtistCreditNames(trackid)
+            artistMbid = artistCreditNames[0].artist.gid
+        elif 'mbid' in request.params:
+            artistMbid = request.params['mbid']
+        else:
+            raise Exception('must supply trackid or artist mbid')
         lfmartist = self.lastfmNetwork.get_artist(None)
         try:
             images = lfmartist.get_images_by_mbid(artistMbid, limit=20)
@@ -365,9 +370,30 @@ class HelloController(BaseController):
         return simplejson.dumps(json)
 
     def getArtistInfoAJAX(self):
-        trackid = request.params['trackid'].split('_')[1]
         json = {}
-        artistMbid = Session.query(MBArtist).join(MBArtistCreditName).join(MBArtistCredit).join(MBRecording).join(AudioFile).join(Track).filter(Track.id==trackid).first().gid
+        if 'trackid' in request.params:
+            trackid = request.params['trackid'].split('_')[1]
+            artistCreditNames = self._getArtistCreditNames(trackid)
+            credit = []
+            for artistcredit in artistCreditNames:
+                credit.append({
+                    'text' : artistcredit.name.name,
+                    'mbid' : artistcredit.artist.gid
+                })
+                if artistcredit.joinphrase:
+                    credit.append({
+                        'text' : artistcredit.joinphrase
+                    })
+            artistMbid = artistCreditNames[0].artist.gid
+        elif 'mbid' in request.params:
+            artistMbid = request.params['mbid']
+            artist = Session.query(MBArtist).filter(MBArtist.gid==artistMbid).one()
+            credit = [{
+                'text' : artist.name.name
+            }]
+        else:
+            raise Exception('need trackid or artist mbid')
+        json['credit'] = credit
         urls = Session.query(MBURL.url, MBLinkType.name) \
                       .join(MBLArtistURL) \
                       .join(MBLink) \
@@ -388,6 +414,24 @@ class HelloController(BaseController):
             json['official'] = urls['official homepage'][0]
         json['musicbrainz'] = 'http://test.musicbrainz.org/artist/' + artistMbid
         return simplejson.dumps(json)
+    
+    def getArtistFromTrackAJAX(self):
+        trackid = request.params['trackid'].split('_')[1]
+        creditname = self._getArtistCreditNames(trackid)[0]
+        json = {
+            'mbid' : creditname.artist.gid
+        }
+        return simplejson.dumps(json)
+    
+    def _getArtistCreditNames(self, trackmbid):
+        return Session.query(MBArtistCreditName) \
+                     .join(MBArtistCredit) \
+                     .join(MBRecording) \
+                     .join(AudioFile) \
+                     .join(Track) \
+                     .filter(Track.id==trackmbid) \
+                     .order_by(MBArtistCreditName.position) \
+                     .all()
     
     def _filterForEnglishWiki(self, url):
         return url.startswith('http://en.wikipedia.org')

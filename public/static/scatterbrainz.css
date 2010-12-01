@@ -5,7 +5,8 @@ body {
     font-size: 0.8em;
     overflow: hidden;
     -khtml-user-select: none;
-    background: #3689e6 url('/static/icons/clouds.png') no-repeat center top;
+    background-image: url('/static/icons/clouds.png');
+    background-repeat: repeat;
 }
 
 p {
@@ -222,6 +223,7 @@ div#dashboard {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: default;
     /**overflow-x: -webkit-marquee;
     -webkit-marquee-speed: 120;
     -webkit-marquee-increment: small;
@@ -362,7 +364,7 @@ div#navigation button.selectedNav {
     font-weight: bold;
 }
 
-div#nowPlayingContainer {
+div.window {
     top: 39px;
     left: 0px;
     right: 0px;
@@ -453,6 +455,74 @@ div.nowPlayingHeader {
     font-size: 18px;
 }
 
+div#artistBrowserLeftContainerContainer {
+    width: 30%;
+    height: 100%;
+    float: left;
+    overflow: hidden;
+}
+
+div#artistBrowserLeftContainer {
+    margin: 10px;
+}
+
+div#artistBrowserArtistImageContainer {
+    -webkit-box-shadow: #666 2px 2px 3px;
+    max-height: 50%;
+    display: inline-block;
+    overflow: hidden;
+}
+
+div#artistBrowserArtistInfo {
+    margin-top: 20px;
+}
+
+div#artistBrowserArtistBio {
+    margin-top: 8px;
+    overflow-y: auto;
+}
+
+div#artistBrowserMiddleContainerContainer {
+    width: 40%;
+    height: 100%;
+    float: left;
+    overflow: hidden;
+}
+
+div#artistBrowserMiddleContainer {
+    margin: 10px;
+    height: 100%;
+}
+
+div#artistBrowserMiddleContent {
+    margin-top: 20;
+    overflow-y: auto;
+}
+
+div#artistBrowserRightContainerContainer {
+    width: 30%;
+    height: 100%;
+    float: left;
+    overflow: hidden;
+}
+
+div#artistBrowserRightContainer {
+    margin: 10px;
+}
+
+div#artistBrowserRightContent {
+    width: 100%;
+    overflow-y: auto;
+}
+
+div.nowPlayingHeader {
+    padding: 5px 0px 15px 0px;
+    width: 100%;
+    font-weight: bold;
+    text-align: center;
+    font-size: 18px;
+}
+
 span.albumYear {
     color: grey !important;
     position: absolute;
@@ -467,5 +537,10 @@ img.linkicon {
 
 img.linkicon:hover {
     opacity: 1.0;
+}
+
+a.artistLink {
+    color: -webkit-link;
+    cursor: pointer;
 }
 

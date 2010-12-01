@@ -35,6 +35,8 @@ def get_art(Session, album):
                 q = q.replace("'","")
                 q = q.replace("&","")
                 q = q.replace("/"," ")
+                q = q.replace(")"," ")
+                q = q.replace("("," ")
                 q = unicodedata.normalize('NFKD', q).encode('ascii', 'ignore')
 
                 site = 'http://www.albumartexchange.com'
