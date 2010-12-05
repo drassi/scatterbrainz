@@ -1,6 +1,8 @@
 import logging
 from datetime import datetime
 
+from sqlalchemy.sql.expression import desc
+
 from scatterbrainz.lib.pylast import WSError
 
 from scatterbrainz.model.similarartist import SimilarArtist
@@ -10,7 +12,11 @@ log = logging.getLogger(__name__)
 
 def get_similar_artists(Session, lastfmNetwork, mbartist):
     mbid = mbartist.gid
-    similarmbids = map(lambda x: x.similar_artist_mbid, Session.query(SimilarArtist).filter_by(artist_mbid=mbid).all())
+    similarartists = Session.query(SimilarArtist) \
+                            .filter_by(artist_mbid=mbid) \
+                            .order_by(desc(SimilarArtist.match)) \
+                            .all()
+    similarmbids = map(lambda x: x.similar_artist_mbid, similarartists)
     if not similarmbids:
         Session.begin()
         now = datetime.now()
@@ -28,14 +34,17 @@ def get_similar_artists(Session, lastfmNetwork, mbartist):
                 similarmbidtomatch[lastfmartist.mbid] = lastfmartist.match
         if not similarmbidtomatch:
             log.warn('No similar artists found for ' + mbid)
-        similarmbids = similarmbidtomatch.keys()
-        for similarmbid in similarmbids:
+        similarartists = []
+        for similarmbid in similarmbidtomatch.keys():
             similarartist = Session.query(MBArtist).filter_by(gid=similarmbid).first()
             if similarartist:
-                Session.add(SimilarArtist(unicode(mbid), unicode(similarmbid), similarmbidtomatch[similarmbid], now))
+                similarartists.append(SimilarArtist(unicode(mbid), unicode(similarmbid), similarmbidtomatch[similarmbid], now))
             else:
                 log.warn('Couldnt find similar artist ' + similarmbid + ' in artists table!')
+        Session.add_all(similarartists)
         Session.commit()
+        similarartists.sort(lambda a,b: cmp(b.match, a.match))
+        similarmbids = map(lambda x: x.similar_artist_mbid, similarartists)
     
     return map(unicode, similarmbids)
 

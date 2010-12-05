@@ -436,6 +436,22 @@ class HelloController(BaseController):
     def _filterForEnglishWiki(self, url):
         return url.startswith('http://en.wikipedia.org')
     
+    def getSimilarArtistsAJAX(self):
+        mbid = request.params['mbid']
+        artist = Session.query(MBArtist).filter(MBArtist.gid==mbid).one()
+        similarartistmbids = similarartist.get_similar_artists(Session, self.lastfmNetwork, artist)
+        similarartists = Session.query(MBArtist).filter(MBArtist.gid.in_(similarartistmbids)).all()
+        similarmap = {}
+        for artist in similarartists:
+            similarmap[artist.gid] = {'mbid' : artist.gid, 'name' : artist.name.name, 'local' : False}
+        localsimilarartists = Session.query(Artist).filter(Artist.mbid.in_(similarartistmbids)).all()
+        for artist in localsimilarartists:
+            similarmap[artist.mbid]['local'] = True
+        similarjson = []
+        for mbid in similarartistmbids:
+            similarjson.append(similarmap[mbid])
+        return simplejson.dumps({'similar' : similarjson})
+    
     def _mapify(self, urls):
         m = {}
         for (url, name) in urls:

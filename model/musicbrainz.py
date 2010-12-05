@@ -83,6 +83,20 @@ class MBReleaseGroup(Base):
     comment = Column(u'comment', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
     editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
+class MBReleaseGroupMeta(Base):
+
+    __tablename__ = 'release_group_meta'
+
+    id = Column(u'id', Integer(), ForeignKey('release_group.id'), primary_key=True, nullable=False)
+    releasegroup = orm.relation(MBReleaseGroup, backref='meta')
+    lastupdate = Column(u'lastupdate', DateTime(timezone=True), primary_key=False)
+    releasecount = Column(u'releasecount', Integer(), primary_key=False, nullable=False)
+    year = Column(u'firstreleasedate_year', SmallInteger(), primary_key=False)
+    month = Column(u'firstreleasedate_month', SmallInteger(), primary_key=False)
+    day = Column(u'firstreleasedate_day', SmallInteger(), primary_key=False)
+    rating = Column(u'rating', SmallInteger(), primary_key=False)
+    ratingcount = Column(u'ratingcount', Integer(), primary_key=False)
+
 class MBRelease(Base):
 
     __tablename__ = 'release'

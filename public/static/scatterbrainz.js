@@ -826,6 +826,11 @@ function populateArtistNav(artistMbid) {
         {'mbid': artistMbid},
         populateArtistBrowserArtistInfo
     );
+    $.getJSON(
+        '/hello/getSimilarArtistsAJAX',
+        {'mbid': artistMbid},
+        populateArtistBrowserSimilarArtists
+    );
 }
 
 function populateNowPlayingArtistImages(data) {
@@ -914,5 +919,19 @@ function clickArtistLink() {
     var mbid = self.data('mbid');
     populateArtistNav(mbid);
     switchWindow($('button#artistNav'), false);
+}
+
+function populateArtistBrowserSimilarArtists(data) {
+    var sartists = data['similar'];
+    $('#artistBrowserSimilarArtistsList').empty();
+    for (var i=0; i<sartists.length; i++) {
+        var sartist = sartists[i];
+        var a = $('<a>').addClass('artistLink').data('mbid', sartist['mbid']).text(sartist['name']);
+        var artist = $('<div>').append(a);
+        if (sartist['local']) {
+            artist.addClass('bold');
+        }
+        $('#artistBrowserSimilarArtistsList').append(artist);
+    }
 }
 

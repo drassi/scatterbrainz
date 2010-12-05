@@ -483,7 +483,7 @@ div#artistBrowserArtistBio {
 }
 
 div#artistBrowserMiddleContainerContainer {
-    width: 40%;
+    width: 45%;
     height: 100%;
     float: left;
     overflow: hidden;
@@ -500,7 +500,7 @@ div#artistBrowserMiddleContent {
 }
 
 div#artistBrowserRightContainerContainer {
-    width: 30%;
+    width: 25%;
     height: 100%;
     float: left;
     overflow: hidden;
@@ -542,5 +542,19 @@ img.linkicon:hover {
 a.artistLink {
     color: -webkit-link;
     cursor: pointer;
+}
+
+div.bold {
+    font-weight: bold;
+}
+
+div#artistBrowserSimilarArtistsList div {
+    border: 1px solid #BFBFBF;
+    padding: 2px;
+    margin: 2px;
+}
+
+div#artistBrowserSimilarArtistsList div:hover {
+    background-color: #D2E3FF;
 }
 
