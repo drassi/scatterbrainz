@@ -452,6 +452,37 @@ class HelloController(BaseController):
             similarjson.append(similarmap[mbid])
         return simplejson.dumps({'similar' : similarjson})
     
+    def getAlbumsForArtistAJAX(self):
+        mbid = request.params['mbid']
+        albums = Session.query(MBReleaseGroup) \
+                        .join(MBArtistCredit, MBArtistCreditName, MBArtist) \
+                        .join(MBReleaseGroupMeta) \
+                        .filter(MBArtist.gid==mbid) \
+                        .order_by([MBReleaseGroupMeta.year, MBReleaseGroupMeta.month, MBReleaseGroupMeta.day]) \
+                        .all()
+        albummap = {}
+        for album in albums:
+            if album.releasegrouptype:
+                t = album.releasegrouptype.name
+            else:
+                t = 'Other'
+            if album.meta[0] and album.meta[0].year:
+                year = album.meta[0].year
+            else:
+                year = '?'
+            albummap[album.gid] = {'mbid' : album.gid,
+                                   'type' : t,
+                                   'name' : album.name.name,
+                                   'year' : year,
+                                   'local' : False}
+        localalbums = Session.query(Album).filter(Album.mbid.in_(albummap.keys())).all()
+        for album in localalbums:
+            albummap[album.mbid]['local'] = True
+        albumjson = []
+        for album in albums:
+            albumjson.append(albummap[album.gid])
+        return simplejson.dumps({'albums' : albumjson})
+    
     def _mapify(self, urls):
         m = {}
         for (url, name) in urls:

@@ -69,6 +69,13 @@ class MBArtistCreditName(Base):
     name = orm.relation(MBArtistName)
     joinphrase = Column(u'joinphrase', String(length=32, convert_unicode=False, assert_unicode=None), primary_key=False)
 
+class MBReleaseGroupType(Base):
+
+    __tablename__ = 'release_group_type'
+
+    id = Column(u'id', Integer(), primary_key=True, nullable=False)
+    name = Column(u'name', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+
 class MBReleaseGroup(Base):
 
     __tablename__ = 'release_group'
@@ -79,7 +86,8 @@ class MBReleaseGroup(Base):
     name = orm.relation(MBReleaseName, backref='releasegroups')
     artistcreditid = Column(u'artist_credit', Integer(), ForeignKey('artist_credit.id'), primary_key=False, nullable=False)
     artistcredit = orm.relation(MBArtistCredit, backref='releasegroups')
-    #typeid = Column(u'type', Integer(), ForeignKey('release_group_type.id'), primary_key=False)
+    typeid = Column(u'type', Integer(), ForeignKey('release_group_type.id'), primary_key=False)
+    releasegrouptype = orm.relation(MBReleaseGroupType)
     comment = Column(u'comment', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
     editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
