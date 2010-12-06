@@ -456,7 +456,7 @@ div.nowPlayingHeader {
 }
 
 div#artistBrowserLeftContainerContainer {
-    width: 30%;
+    width: 40%;
     height: 100%;
     float: left;
     overflow: hidden;
@@ -483,7 +483,7 @@ div#artistBrowserArtistBio {
 }
 
 div#artistBrowserMiddleContainerContainer {
-    width: 45%;
+    width: 35%;
     height: 100%;
     float: left;
     overflow: hidden;
@@ -556,5 +556,39 @@ div#artistBrowserSimilarArtistsList div {
 
 div#artistBrowserSimilarArtistsList div:hover {
     background-color: #D2E3FF;
+}
+
+div.artistAlbum {
+    border: 1px solid #BFBFBF;
+    padding: 2px;
+    margin: 2px;
+}
+
+div.artistAlbum:hover {
+    background-color: #D2E3FF;
+}
+
+div.artistAlbum span {
+    display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+span.albumTitle {
+    width: 60%;
+}
+
+span.albumYear2 {
+    width: 10%;
+    text-align: center;
+}
+
+span.albumType {
+    width: 15%;
+}
+
+span.albumButtons {
+    width: 15%;
 }
 

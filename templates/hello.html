@@ -113,7 +113,22 @@
     <div id="artistBrowserMiddleContainerContainer">
         <div id="artistBrowserMiddleContainer">
             <div id="artistBrowserMiddleHeader" class="nowPlayingHeader"></div>
-            <div id="artistBrowserMiddleContent" class="expandHeightToFitBrowser" expandheightoffsetpx="70"></div>
+            <div id="artistBrowserMiddleContent" class="expandHeightToFitBrowser" expandheightoffsetpx="70">
+                <b>Albums:</b>
+                <div>
+                    <input type="checkbox" class="albumToggle" id="albumCheckbox" checked>
+                    <label for="albumCheckbox">Album (<span id="albumCount">0</span>)</label>
+                    <input type="checkbox" class="albumToggle" id="epCheckbox" checked>
+                    <label for="epCheckbox">EP (<span id="epCount">0</span>)</label>
+                    <input type="checkbox" class="albumToggle" id="liveCheckbox" checked>
+                    <label for="liveCheckbox">Live (<span id="liveCount">0</span>)</label>
+                    <input type="checkbox" class="albumToggle" id="compilationCheckbox" checked>
+                    <label for="compilationCheckbox">Comp. (<span id="compilationCount">0</span>)</label>
+                    <input type="checkbox" class="albumToggle" id="otherCheckbox" checked>
+                    <label for="otherCheckbox">Other (<span id="otherCount">0</span>)</label>
+                </div>
+                <div id="artistBrowserAlbumList"></div>
+            </div>
         </div>
     </div>
     <div id="artistBrowserRightContainerContainer">

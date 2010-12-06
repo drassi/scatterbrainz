@@ -398,6 +398,13 @@ $(document).ready(function(){
     });
     
     $('a.artistLink').live('click', clickArtistLink);
+    
+    $('.albumToggle').change(toggleAlbumVisibility);
+    $('#albumCheckbox').data('type', 'Album');
+    $('#epCheckbox').data('type', 'EP');
+    $('#liveCheckbox').data('type', 'Live');
+    $('#compilationCheckbox').data('type', 'Compilation');
+    $('#otherCheckbox').data('type', 'Other');
 });
 
 function switchWindow(self, runCallback) {
@@ -831,6 +838,11 @@ function populateArtistNav(artistMbid) {
         {'mbid': artistMbid},
         populateArtistBrowserSimilarArtists
     );
+    $.getJSON(
+        '/hello/getAlbumsForArtistAJAX',
+        {'mbid': artistMbid},
+        populateArtistBrowserAlbums
+    );
 }
 
 function populateNowPlayingArtistImages(data) {
@@ -932,6 +944,71 @@ function populateArtistBrowserSimilarArtists(data) {
             artist.addClass('bold');
         }
         $('#artistBrowserSimilarArtistsList').append(artist);
+    }
+}
+
+function populateArtistBrowserAlbums(data) {
+    var albums = data['albums'];
+    $('#artistBrowserAlbumList').empty();
+    var albumCount = 0, epCount = 0, liveCount = 0, compilationCount = 0, otherCount = 0;
+    for (var i=0; i<albums.length; i++) {
+        var album = albums[i];
+        var t = album['type'];
+        var e = $('<div>').addClass('artistAlbum')
+                          .addClass('albumType' + t)
+                          .append($('<span>').addClass('albumTitle').text(album['name']))
+                          .append($('<span>').addClass('albumYear2').text(album['year']))
+                          .append($('<span>').addClass('albumType').text(t))
+                          .append($('<span>').addClass('albumButtons').text('S P Q'))
+                          .data('mbid', album['mbid']);
+        var checkbox;
+        if (t == 'Album') {
+            albumCount++;
+            checkbox = $('#albumCheckbox');
+        } else if (t == 'EP') {
+            epCount++;
+            checkbox = $('#epCheckbox');
+        } else if (t == 'Live') {
+            liveCount++;
+            checkbox = $('#liveCheckbox');
+        } else if (t == 'Compilation') {
+            compilationCount++;
+            checkbox = $('#compilationCheckbox');
+        } else {
+            otherCount++;
+            checkbox = $('#otherCheckbox');
+        }
+        
+        if (!checkbox.is(':checked')) {
+            e.hide();
+        }
+        
+        if (album['local']) {
+            e.addClass('bold');
+        }
+        
+        $('#artistBrowserAlbumList').append(e);
+    }
+    $('#albumCount').text(albumCount);
+    $('#epCount').text(epCount);
+    $('#liveCount').text(liveCount);
+    $('#compilationCount').text(compilationCount);
+    $('#otherCount').text(otherCount);
+}
+
+function toggleAlbumVisibility() {
+    var self = $(this);
+    var type = self.data('type');
+    var albums;
+    if (type == 'Other') {
+        albums = $('.artistAlbum').not('.albumTypeAlbum').not('.albumTypeEP').not('.albumTypeLive').not('.albumTypeCompilation');
+    } else {
+        albums = $('.albumType' + type);
+    }
+    if (self.is(':checked')) {
+        albums.show();
+    } else {
+        albums.hide();
     }
 }
 

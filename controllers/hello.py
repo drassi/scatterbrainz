@@ -465,7 +465,7 @@ class HelloController(BaseController):
             if album.releasegrouptype:
                 t = album.releasegrouptype.name
             else:
-                t = 'Other'
+                t = 'Unknown'
             if album.meta[0] and album.meta[0].year:
                 year = album.meta[0].year
             else:
@@ -480,7 +480,8 @@ class HelloController(BaseController):
             albummap[album.mbid]['local'] = True
         albumjson = []
         for album in albums:
-            albumjson.append(albummap[album.gid])
+            if albummap[album.gid]['type'] != 'Non-Album Tracks':
+                albumjson.append(albummap[album.gid])
         return simplejson.dumps({'albums' : albumjson})
     
     def _mapify(self, urls):
