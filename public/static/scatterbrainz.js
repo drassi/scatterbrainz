@@ -959,7 +959,6 @@ function populateArtistBrowserAlbums(data) {
                           .append($('<span>').addClass('albumTitle').text(album['name']))
                           .append($('<span>').addClass('albumYear2').text(album['year']))
                           .append($('<span>').addClass('albumType').text(t))
-                          .append($('<span>').addClass('albumButtons').text('S P Q'))
                           .data('mbid', album['mbid']);
         var checkbox;
         if (t == 'Album') {
@@ -983,10 +982,16 @@ function populateArtistBrowserAlbums(data) {
             e.hide();
         }
         
+        var buttons = $('<span>').addClass('albumButtons');
         if (album['local']) {
             e.addClass('bold');
+            buttons.append($('<span>').addClass('ui-icon ui-icon-play'))
+                   .append($('<span>').addClass('ui-icon ui-icon-clock'));
+        } else {
+            buttons.append($('<span>').addClass('ui-icon ui-icon-search'));
         }
         
+        e.append(buttons);
         $('#artistBrowserAlbumList').append(e);
     }
     $('#albumCount').text(albumCount);

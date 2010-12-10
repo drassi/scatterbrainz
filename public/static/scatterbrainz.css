@@ -576,7 +576,7 @@ div.artistAlbum span {
 }
 
 span.albumTitle {
-    width: 60%;
+    width: 65%;
 }
 
 span.albumYear2 {
@@ -589,6 +589,33 @@ span.albumType {
 }
 
 span.albumButtons {
-    width: 15%;
+    width: 10%;
+    position: relative;
+    height: 13px;
+}
+
+span.albumButtons span {
+    opacity: 0.7;
+    position: absolute;
+}
+
+span.albumButtons span:hover {
+    opacity: 1.0;
+    cursor: pointer;
+}
+
+span.albumButtons span.ui-icon-play {
+    position: absolute;
+    left: 0;
+}
+
+span.albumButtons span.ui-icon-clock {
+    position: absolute;
+    left: 45%;
+}
+
+span.albumButtons span.ui-icon-search {
+    position: absolute;
+    left: 45%;
 }
 
