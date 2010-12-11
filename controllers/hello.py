@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 
 import logging
 
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql.functions import random
 from sqlalchemy.orm import contains_eager
 
@@ -146,9 +147,13 @@ class HelloController(BaseController):
         similarMbids = set([])
         for artist in artists:
             similarMbids.update(similarartist.get_similar_artists(Session, self.lastfmNetwork, artist))
+        artistMbidsWithAlbums = Session.query(Artist.mbid) \
+                                       .join(artist_albums) \
+                                       .filter(Artist.mbid.in_(similarMbids)) \
+                                       .distinct() \
+                                       .subquery()
         randomSimilarArtist = Session.query(Artist) \
-                                     .join(artist_albums) \
-                                     .filter(Artist.mbid.in_(similarMbids)) \
+                                     .filter(Artist.mbid.in_(artistMbidsWithAlbums)) \
                                      .order_by(random()) \
                                      .first()
         randomAlbum = rand.choice(randomSimilarArtist.albums)
