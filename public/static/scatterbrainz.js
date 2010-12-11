@@ -478,7 +478,7 @@ function addToPlaylist(id, target) {
     $.getJSON(
         '/hello/getTracksAJAX',
         {'id': id},
-        ($('.song').length == 0) ? addToPlaylistThenPlayCallback : addToPlaylistCallback
+        ($('.playing').length == 0) ? addToPlaylistThenPlayCallback : addToPlaylistCallback
     );
 }
 
@@ -726,7 +726,7 @@ function nextSimilarTrack(id) {
 function playAJAXCallback(data) {
     var last = $('.song:last');
     $(document).data('playlistDropTarget', null);
-    addToPlaylistCallback(data);
+    addToPlaylistThenPlayCallback(data);
 }
 
 function populatePlayingTrackInfo(row) {
