@@ -59,7 +59,7 @@ ALTER TABLE scatterbrainz_albums_tmp
    REFERENCES release_group(gid);
 
 CREATE INDEX scatterbrainz_albums_search_tmp
-    ON scatterbrainz_albums
+    ON scatterbrainz_albums_tmp
  USING gin(to_tsvector('english', search || ' ' || unaccent(search)));
 
 
@@ -128,7 +128,7 @@ ALTER TABLE scatterbrainz_tracks_tmp
    REFERENCES scatterbrainz_albums_tmp(release_group_mbid);
 
 CREATE INDEX scatterbrainz_tracks_search_tmp
-    ON scatterbrainz_tracks
+    ON scatterbrainz_tracks_tmp
  USING gin(to_tsvector('english', search || ' ' || unaccent(search)));
 
 
