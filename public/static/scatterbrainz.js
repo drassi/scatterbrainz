@@ -372,8 +372,7 @@ $(document).ready(function(){
             '/hello/getTracksAJAX',
             {'id': id},
             function(data) {
-                addToPlaylistCallback(data);
-                playRow($('.song:first'));
+                addToPlaylistThenPlayCallback(data);
             }
         );
     }
@@ -405,6 +404,10 @@ $(document).ready(function(){
     $('#liveCheckbox').data('type', 'Live');
     $('#compilationCheckbox').data('type', 'Compilation');
     $('#otherCheckbox').data('type', 'Other');
+    
+    $('.playAlbumButton').live('click', playAlbumHandler);
+    $('.queueAlbumButton').live('click', queueAlbumHandler);
+    $('.searchAlbumButton').live('click', searchAlbumHandler);
 });
 
 function switchWindow(self, runCallback) {
@@ -475,12 +478,11 @@ function addToPlaylist(id, target) {
     $.getJSON(
         '/hello/getTracksAJAX',
         {'id': id},
-        addToPlaylistCallback
+        ($('.song').length == 0) ? addToPlaylistThenPlayCallback : addToPlaylistCallback
     );
 }
 
 function addToPlaylistCallback(data) {
-    var start = ($('.playing').length == 0);
     var insertText = '';
     $.each(data, function(count, trackJSON) {
         insertText += '<tr id="track_'+trackJSON['id']+'" class="song" href="'
@@ -501,8 +503,15 @@ function addToPlaylistCallback(data) {
     }
     $('#playlist thead th').unbind('click');
     $('#playlist').tablesorter();
-    if (start) {
-        playRow($('#track_' + data[0]['id']));
+}
+
+function addToPlaylistThenPlayCallback(data) {
+    var last = $('.song:last');
+    addToPlaylistCallback(data);
+    if (last.length) {
+        playRow(last.next());
+    } else {
+        playRow($('.song:first'));
     }
 }
 
@@ -985,10 +994,10 @@ function populateArtistBrowserAlbums(data) {
         var buttons = $('<span>').addClass('albumButtons');
         if (album['local']) {
             e.addClass('bold');
-            buttons.append($('<span>').addClass('ui-icon ui-icon-play'))
-                   .append($('<span>').addClass('ui-icon ui-icon-clock'));
+            buttons.append($('<span>').addClass('ui-icon ui-icon-play playAlbumButton'))
+                   .append($('<span>').addClass('ui-icon ui-icon-clock queueAlbumButton'));
         } else {
-            buttons.append($('<span>').addClass('ui-icon ui-icon-search'));
+            buttons.append($('<span>').addClass('ui-icon ui-icon-search searchAlbumButton'));
         }
         
         e.append(buttons);
@@ -1015,5 +1024,35 @@ function toggleAlbumVisibility() {
     } else {
         albums.hide();
     }
+}
+
+function playAlbumHandler() {
+    var mbid = $(this).parent().parent().data('mbid');
+    $.getJSON(
+        '/hello/getTracksAJAX',
+        {'id': 'Album_' + mbid},
+        addToPlaylistThenPlayCallback
+    );
+}
+
+function queueAlbumHandler() {
+    var mbid = $(this).parent().parent().data('mbid');
+    $.getJSON(
+        '/hello/getTracksAJAX',
+        {'id': 'Album_' + mbid},
+        addToPlaylistCallback
+    );
+}
+
+function searchAlbumHandler() {
+    var artist = $('#artistBrowserArtistHeader').text();
+    var album = $(this).parent().parent().children('.albumTitle').text();
+    var url = 'https://ssl.what.cd/torrents.php?'
+            + 'artistname=' + encodeURIComponent(artist) + '&'
+            + 'groupname=' + encodeURIComponent(album) + '&'
+            + 'action=advanced&'
+            + 'format=MP3&'
+            + 'order_by=seeders';
+    window.open(url, '_newtab');
 }
 
