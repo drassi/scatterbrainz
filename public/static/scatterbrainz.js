@@ -848,9 +848,9 @@ function populateArtistNav(artistMbid) {
         populateArtistBrowserSimilarArtists
     );
     $.getJSON(
-        '/hello/getAlbumsForArtistAJAX',
+        '/hello/getAlbumsAndRelationshipsForArtistAJAX',
         {'mbid': artistMbid},
-        populateArtistBrowserAlbums
+        populateArtistBrowserAlbumsRelationships
     );
 }
 
@@ -956,7 +956,29 @@ function populateArtistBrowserSimilarArtists(data) {
     }
 }
 
-function populateArtistBrowserAlbums(data) {
+function populateArtistBrowserAlbumsRelationships(data) {
+
+    var list = $('#artistBrowserRelationships');
+    list.empty();
+    if ('relationships' in data) {
+        var relationships = data['relationships'];
+        for (var i=0;i<relationships.length;i++) {
+            var rlist = relationships[i];
+            var div = $('<div>').addClass('artistRelationship');
+            for (var j=0;j<rlist.length;j++) {
+                var r = rlist[j];
+                if ('mbid' in r) {
+                    div.append($('<a>').addClass('artistLink')
+                                       .text(r['text'])
+                                       .data('mbid', r['mbid']));
+                } else {
+                    div.append(r['text']);
+                }
+            }
+            list.append(div);
+        }
+    }
+
     var albums = data['albums'];
     $('#artistBrowserAlbumList').empty();
     var albumCount = 0, epCount = 0, liveCount = 0, compilationCount = 0, otherCount = 0;

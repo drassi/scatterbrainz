@@ -204,6 +204,48 @@ class MBMedium(Base):
     name = Column(u'name', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
     editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
+class MBLinkType(Base):
+
+    __tablename__ = 'link_type'
+    
+    id = Column(u'id', Integer(), primary_key=True, nullable=False)
+    Column(u'parent', Integer(), ForeignKey('link_type.id'), primary_key=False)
+    Column(u'childorder', Integer(), primary_key=False, nullable=False)
+    Column(u'gid', PGUuid(), primary_key=False, nullable=False)
+    Column(u'entitytype0', String(length=50, convert_unicode=False, assert_unicode=None), primary_key=False)
+    Column(u'entitytype1', String(length=50, convert_unicode=False, assert_unicode=None), primary_key=False)
+    name = Column(u'name', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    Column(u'description', Text(length=None, convert_unicode=False, assert_unicode=None), primary_key=False)
+    linkphrase = Column(u'linkphrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    rlinkphrase = Column(u'rlinkphrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    Column(u'shortlinkphrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    Column(u'priority', Integer(), primary_key=False, nullable=False)
+
+class MBLink(Base):
+
+    __tablename__ = 'link'
+
+    id = Column(u'id', Integer(), primary_key=True, nullable=False)
+    link_type_id = Column(u'link_type', Integer(), ForeignKey('link_type.id'), primary_key=False, nullable=False)
+    link_type = orm.relation(MBLinkType)
+    beginyear = Column(u'begindate_year', SmallInteger(), primary_key=False)
+    beginmonth = Column(u'begindate_month', SmallInteger(), primary_key=False)
+    beginday = Column(u'begindate_day', SmallInteger(), primary_key=False)
+    endyear = Column(u'enddate_year', SmallInteger(), primary_key=False)
+    endmonth = Column(u'enddate_month', SmallInteger(), primary_key=False)
+    endday = Column(u'enddate_day', SmallInteger(), primary_key=False)
+    Column(u'attributecount', Integer(), primary_key=False, nullable=False)
+
+class MBLArtistURL(Base):
+
+    __tablename__ = 'l_artist_url'
+    
+    id = Column(u'id', Integer(), primary_key=True, nullable=False)
+    link_id = Column(u'link', Integer(), ForeignKey('link.id'), primary_key=False, nullable=False)
+    artist_id = Column(u'entity0', Integer(), ForeignKey('artist.id'), primary_key=False, nullable=False)
+    url_id = Column(u'entity1', Integer(), ForeignKey('url.id'), primary_key=False, nullable=False)
+    Column(u'editpending', Integer(), primary_key=False, nullable=False)
+
 class MBLReleaseGroupURL(Base):
 
     __tablename__ = 'l_release_group_url'
@@ -224,46 +266,18 @@ class MBLReleaseURL(Base):
     url_id = Column(u'entity1', Integer(), ForeignKey('url.id'), primary_key=False, nullable=False)
     Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
-class MBLArtistURL(Base):
-
-    __tablename__ = 'l_artist_url'
+class MBLArtistArtist(Base):
+    
+    __tablename__ = 'l_artist_artist'
     
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
     link_id = Column(u'link', Integer(), ForeignKey('link.id'), primary_key=False, nullable=False)
-    artist_id = Column(u'entity0', Integer(), ForeignKey('artist.id'), primary_key=False, nullable=False)
-    url_id = Column(u'entity1', Integer(), ForeignKey('url.id'), primary_key=False, nullable=False)
+    link = orm.relation(MBLink)
+    artist1_id = Column(u'entity0', Integer(), ForeignKey('artist.id'), primary_key=False, nullable=False)
+    artist1 = orm.relation(MBArtist, primaryjoin=artist1_id==MBArtist.id)
+    artist2_id = Column(u'entity1', Integer(), ForeignKey('artist.id'), primary_key=False, nullable=False)
+    artist2 = orm.relation(MBArtist, primaryjoin=artist2_id==MBArtist.id)
     Column(u'editpending', Integer(), primary_key=False, nullable=False)
-
-class MBLink(Base):
-
-    __tablename__ = 'link'
-
-    id = Column(u'id', Integer(), primary_key=True, nullable=False)
-    link_type_id = Column(u'link_type', Integer(), ForeignKey('link_type.id'), primary_key=False, nullable=False)
-    Column(u'begindate_year', SmallInteger(), primary_key=False)
-    Column(u'begindate_month', SmallInteger(), primary_key=False)
-    Column(u'begindate_day', SmallInteger(), primary_key=False)
-    Column(u'enddate_year', SmallInteger(), primary_key=False)
-    Column(u'enddate_month', SmallInteger(), primary_key=False)
-    Column(u'enddate_day', SmallInteger(), primary_key=False)
-    Column(u'attributecount', Integer(), primary_key=False, nullable=False),
-
-class MBLinkType(Base):
-
-    __tablename__ = 'link_type'
-    
-    id = Column(u'id', Integer(), primary_key=True, nullable=False)
-    Column(u'parent', Integer(), ForeignKey('link_type.id'), primary_key=False)
-    Column(u'childorder', Integer(), primary_key=False, nullable=False)
-    Column(u'gid', PGUuid(), primary_key=False, nullable=False)
-    Column(u'entitytype0', String(length=50, convert_unicode=False, assert_unicode=None), primary_key=False)
-    Column(u'entitytype1', String(length=50, convert_unicode=False, assert_unicode=None), primary_key=False)
-    name = Column(u'name', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    Column(u'description', Text(length=None, convert_unicode=False, assert_unicode=None), primary_key=False)
-    Column(u'linkphrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    Column(u'rlinkphrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    Column(u'shortlinkphrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    Column(u'priority', Integer(), primary_key=False, nullable=False)
 
 class MBURL(Base):
 

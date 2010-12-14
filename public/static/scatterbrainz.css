@@ -496,7 +496,6 @@ div#artistBrowserMiddleContainer {
 
 div#artistBrowserMiddleContent {
     margin-top: 20;
-    overflow-y: auto;
 }
 
 div#artistBrowserRightContainerContainer {
@@ -617,5 +616,13 @@ span.albumButtons span.ui-icon-clock {
 span.albumButtons span.ui-icon-search {
     position: absolute;
     left: 45%;
+}
+
+div#artistBrowserAlbumList {   
+    overflow-y: auto;
+}
+
+div#artistBrowserAlbumControls {
+    margin-bottom: 4px;
 }
 

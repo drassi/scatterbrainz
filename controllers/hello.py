@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import re
 import time
@@ -14,6 +16,7 @@ import logging
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.functions import random
 from sqlalchemy.orm import contains_eager
+from sqlalchemy.sql.expression import or_
 
 from pylons import request, response, session, tmpl_context as c
 
@@ -373,9 +376,10 @@ class HelloController(BaseController):
             json['amazon'] = amazon.url
         json['musicbrainz'] = 'http://test.musicbrainz.org/release-group/' + albumMbid
         return simplejson.dumps(json)
-
+    
     def getArtistInfoAJAX(self):
         json = {}
+        # Get the artist credit for the given artist or track
         if 'trackid' in request.params:
             trackid = request.params['trackid'].split('_')[1]
             artistCreditNames = self._getArtistCreditNames(trackid)
@@ -399,6 +403,7 @@ class HelloController(BaseController):
         else:
             raise Exception('need trackid or artist mbid')
         json['credit'] = credit
+        # Get artist bio, and url relationships
         urls = Session.query(MBURL.url, MBLinkType.name) \
                       .join(MBLArtistURL) \
                       .join(MBLink) \
@@ -457,8 +462,31 @@ class HelloController(BaseController):
             similarjson.append(similarmap[mbid])
         return simplejson.dumps({'similar' : similarjson})
     
-    def getAlbumsForArtistAJAX(self):
+    rmap = {
+            'member of band' : {'symmetric' : False,
+                                'lphrase'   : 'Member of',
+                                'rphrase'   : 'Members'},
+            'is person'      : {'symmetric' : False,
+                                'lphrase'   : 'Performs as',
+                                'rphrase'   : 'Performance name for'},
+            'parent'         : {'symmetric' : False,
+                                'lphrase'   : 'Parents',
+                                'rphrase'   : 'Children'},
+            'sibling'        : {'symmetric' : True,
+                                'phrase'    : 'Siblings'},
+            'married'        : {'symmetric' : True,
+                                'phrase'    : 'Married'},
+            'collaboration'  : {'symmetric' : False,
+                                'lphrase'   : 'Collaborated on',
+                                'rphrase'   : 'Collaboration between'},
+           }
+    rkeyorder = ['member of band', 'is person', 'parent', 'sibling', 'married', 'collaboration']
+
+    def getAlbumsAndRelationshipsForArtistAJAX(self):
+        
         mbid = request.params['mbid']
+        
+        # albums
         albums = Session.query(MBReleaseGroup) \
                         .join(MBArtistCredit, MBArtistCreditName, MBArtist) \
                         .join(MBReleaseGroupMeta) \
@@ -487,7 +515,83 @@ class HelloController(BaseController):
         for album in albums:
             if albummap[album.gid]['type'] != 'Non-Album Tracks':
                 albumjson.append(albummap[album.gid])
-        return simplejson.dumps({'albums' : albumjson})
+        
+        # weirdly complicated pivoting, collating & sorting of relationship data
+        # should be done much better....
+        artist1 = aliased(MBArtist)
+        artist2 = aliased(MBArtist)
+        relations = Session.query(MBLArtistArtist) \
+                           .join((artist1, MBLArtistArtist.artist1),
+                                 (artist2, MBLArtistArtist.artist2)) \
+                           .filter(or_(artist1.gid==mbid,
+                                       artist2.gid==mbid)) \
+                           .all()
+        rs = {}
+        for r in relations:
+            link = r.link
+            ltype = link.link_type.name
+            if ltype not in self.rmap:
+                continue
+            sym = self.rmap[ltype]['symmetric']
+            if ltype not in rs:
+                if sym:
+                    rs[ltype] = []
+                else:
+                    rs[ltype] = [[],[]]
+            if r.artist1.gid == mbid:
+                other = r.artist2
+                if sym:
+                    place = rs[ltype]
+                else:
+                    place = rs[ltype][0]
+            elif r.artist2.gid == mbid:
+                other = r.artist1
+                if sym:
+                    place = rs[ltype]
+                else:
+                    place = rs[ltype][1]
+            else:
+                raise Exception('mbid ' + mbid + ' isnt ' + artist1.gid + ' nor ' + artist2.gid)
+            rdata = [{'mbid' : other.gid,
+                      'text' : other.name.name}]
+            if link.beginyear:
+                if link.endyear:
+                    yeartext = '(' + str(link.beginyear) + u'–' + str(link.endyear) + ')'
+                else:
+                    yeartext = '(' + str(link.beginyear) + u'–)'
+                rdata.append({'text' : yeartext})
+            place.append({'begin' : link.beginyear, 'data'  : rdata})
+        
+        rsordered = []
+        for rkey in self.rkeyorder:
+        
+            if rkey not in rs:
+                continue
+            
+            rmapentry = self.rmap[rkey]
+            if rmapentry['symmetric']:
+                phrase = rmapentry['phrase']
+                data = []
+                for relationship in rs[rkey]:
+                    data.append(relationship['data'])
+                rsordered.append({'text' : phrase, 'data' : data})
+            
+            else:
+                phrase = rmapentry['lphrase']
+                data = []
+                for relationship in rs[rkey][0]:
+                    data.append(relationship['data'])
+                if data:
+                    rsordered.append({'text' : phrase, 'data' : data})
+                
+                phrase = rmapentry['rphrase']
+                data = []
+                for relationship in rs[rkey][1]:
+                    data.append(relationship['data'])
+                if data:
+                    rsordered.append({'text' : phrase, 'data' : data})
+            
+        return simplejson.dumps({'albums' : albumjson, 'relationships' : rsordered})
     
     def _mapify(self, urls):
         m = {}
@@ -497,4 +601,4 @@ class HelloController(BaseController):
             else:
                 m[name] = [url]
         return m
-    
+
