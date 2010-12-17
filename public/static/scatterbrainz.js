@@ -963,19 +963,25 @@ function populateArtistBrowserAlbumsRelationships(data) {
     if ('relationships' in data) {
         var relationships = data['relationships'];
         for (var i=0;i<relationships.length;i++) {
-            var rlist = relationships[i];
-            var div = $('<div>').addClass('artistRelationship');
-            for (var j=0;j<rlist.length;j++) {
-                var r = rlist[j];
-                if ('mbid' in r) {
-                    div.append($('<a>').addClass('artistLink')
-                                       .text(r['text'])
-                                       .data('mbid', r['mbid']));
-                } else {
-                    div.append(r['text']);
+            var relationship = relationships[i];
+            var text = relationship['text'];
+            list.append('<b>' + text + '</b>');
+            var rdata = relationship['data'];
+            for (var j=0;j<rdata.length;j++) {
+                var li = $('<li>').addClass('artistRelationship');
+                var relationship = rdata[j];
+                for (var k=0;k<relationship.length;k++) {
+                    var r = relationship[k];
+                    if ('mbid' in r) {
+                        li.append($('<a>').addClass('artistLink')
+                                          .text(r['text'])
+                                          .data('mbid', r['mbid']));
+                    } else {
+                        li.append(r['text']);
+                    }
                 }
+                list.append(li);
             }
-            list.append(div);
         }
     }
 
