@@ -626,3 +626,12 @@ div#artistBrowserAlbumControls {
     margin-bottom: 4px;
 }
 
+li.artistRelationship {
+    margin-left: 10px;
+}
+
+div#artistBrowserRelationships {
+    overflow-y: auto;
+    max-height: 40%;
+}
+
