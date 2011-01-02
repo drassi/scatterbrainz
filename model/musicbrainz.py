@@ -5,8 +5,9 @@ from sqlalchemy import orm
 
 from scatterbrainz.model.meta import metadata
 
-from sqlalchemy.databases.postgres import PGUuid
+from sqlalchemy.databases import postgres
 
+PGUuid = postgres.PGUuid
 Base = declarative_base(metadata=metadata)
 
 class MBArtistName(Base):

@@ -1,7 +1,7 @@
 """The application's model objects"""
 import sqlalchemy as sa
 from sqlalchemy import orm
-from sqlalchemy.databases.postgres import PGUuid
+from sqlalchemy.databases import postgres
 
 from scatterbrainz.model import meta
 
@@ -30,6 +30,8 @@ from scatterbrainz.model.lyricsattempt import LyricsAttempt
 from scatterbrainz.model.artistbio import ArtistBio
 from scatterbrainz.model.albumsummary import AlbumSummary
 from scatterbrainz.model.similarartist import SimilarArtist
+
+PGUuid = postgres.PGUuid
 
 artist_albums = sa.Table('scatterbrainz_artist_albums', meta.metadata,
     sa.Column('artist_mbid', PGUuid, sa.ForeignKey('scatterbrainz_artists.artist_mbid')),

@@ -1,10 +1,11 @@
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy import Column, Integer, String, Unicode, DateTime, ForeignKey, Float
-from sqlalchemy.databases.postgres import PGUuid
+from sqlalchemy.databases import postgres
 
 from scatterbrainz.model.meta import metadata
 
+PGUuid = postgres.PGUuid
 Base = declarative_base(metadata=metadata)
 class SimilarArtist(Base):
 

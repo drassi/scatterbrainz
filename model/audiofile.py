@@ -1,13 +1,14 @@
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy import Column, Integer, String, Unicode, DateTime, ForeignKey, UniqueConstraint
-from sqlalchemy.databases.postgres import PGUuid
+from sqlalchemy.databases import postgres
 
 from scatterbrainz.model.meta import metadata
 from scatterbrainz.model.musicbrainz import *
 
 from scatterbrainz.controllers import renderer as r
 
+PGUuid = postgres.PGUuid
 Base = declarative_base(metadata=metadata)
 class AudioFile(Base):
 
