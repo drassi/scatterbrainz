@@ -25,20 +25,20 @@ class MBArtist(Base):
     gid = Column(u'gid', PGUuid(), primary_key=False, nullable=False)
     nameid = Column(u'name', Integer(), ForeignKey('artist_name.id'), primary_key=False, nullable=False)
     name = orm.relation(MBArtistName, primaryjoin=nameid==MBArtistName.id, backref='artists')
-    sortnameid = Column(u'sortname', Integer(), ForeignKey('artist_name.id'), primary_key=False, nullable=False)
+    sortnameid = Column(u'sort_name', Integer(), ForeignKey('artist_name.id'), primary_key=False, nullable=False)
     sortname = orm.relation(MBArtistName, primaryjoin=sortnameid==MBArtistName.id, backref='artistssort')
-    begindate_year = Column(u'begindate_year', SmallInteger(), primary_key=False)
-    begindate_month = Column(u'begindate_month', SmallInteger(), primary_key=False)
-    begindate_day = Column(u'begindate_day', SmallInteger(), primary_key=False)
-    enddate_year = Column(u'enddate_year', SmallInteger(), primary_key=False)
-    enddate_month = Column(u'enddate_month', SmallInteger(), primary_key=False)
-    enddate_day = Column(u'enddate_day', SmallInteger(), primary_key=False)
+    begindate_year = Column(u'begin_date_year', SmallInteger(), primary_key=False)
+    begindate_month = Column(u'begin_date_month', SmallInteger(), primary_key=False)
+    begindate_day = Column(u'begin_date_day', SmallInteger(), primary_key=False)
+    enddate_year = Column(u'end_date_year', SmallInteger(), primary_key=False)
+    enddate_month = Column(u'end_date_month', SmallInteger(), primary_key=False)
+    enddate_day = Column(u'end_date_day', SmallInteger(), primary_key=False)
     #typeid = Column(u'type', Integer(), ForeignKey('artist_type.id'), primary_key=False)
     #countryid = Column(u'country', Integer(), ForeignKey('country.id'), primary_key=False)
     #genderid = Column(u'gender', Integer(), ForeignKey('gender.id'), primary_key=False)
     comment = Column(u'comment', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
-    ipicode = Column(u'ipicode', String(length=11, convert_unicode=False, assert_unicode=None), primary_key=False)
-    editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
+    #ipicode = Column(u'ipicode', String(length=11, convert_unicode=False, assert_unicode=None), primary_key=False)
+    #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBReleaseName(Base):
     
@@ -68,7 +68,7 @@ class MBArtistCreditName(Base):
     artist = orm.relation(MBArtist)
     nameid = Column(u'name', Integer(), ForeignKey('artist_name.id'), primary_key=False, nullable=False)
     name = orm.relation(MBArtistName)
-    joinphrase = Column(u'joinphrase', String(length=32, convert_unicode=False, assert_unicode=None), primary_key=False)
+    joinphrase = Column(u'join_phrase', String(length=32, convert_unicode=False, assert_unicode=None), primary_key=False)
 
 class MBReleaseGroupType(Base):
 
@@ -90,7 +90,7 @@ class MBReleaseGroup(Base):
     typeid = Column(u'type', Integer(), ForeignKey('release_group_type.id'), primary_key=False)
     releasegrouptype = orm.relation(MBReleaseGroupType)
     comment = Column(u'comment', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
-    editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
+    #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBReleaseGroupMeta(Base):
 
@@ -98,13 +98,12 @@ class MBReleaseGroupMeta(Base):
 
     id = Column(u'id', Integer(), ForeignKey('release_group.id'), primary_key=True, nullable=False)
     releasegroup = orm.relation(MBReleaseGroup, backref='meta')
-    lastupdate = Column(u'lastupdate', DateTime(timezone=True), primary_key=False)
-    releasecount = Column(u'releasecount', Integer(), primary_key=False, nullable=False)
-    year = Column(u'firstreleasedate_year', SmallInteger(), primary_key=False)
-    month = Column(u'firstreleasedate_month', SmallInteger(), primary_key=False)
-    day = Column(u'firstreleasedate_day', SmallInteger(), primary_key=False)
+    releasecount = Column(u'release_count', Integer(), primary_key=False, nullable=False)
+    year = Column(u'first_release_date_year', SmallInteger(), primary_key=False)
+    month = Column(u'first_release_date_month', SmallInteger(), primary_key=False)
+    day = Column(u'first_release_date_day', SmallInteger(), primary_key=False)
     rating = Column(u'rating', SmallInteger(), primary_key=False)
-    ratingcount = Column(u'ratingcount', Integer(), primary_key=False)
+    ratingcount = Column(u'rating_count', Integer(), primary_key=False)
 
 class MBRelease(Base):
 
@@ -128,7 +127,7 @@ class MBRelease(Base):
     dateday = Column(u'date_day', SmallInteger(), primary_key=False)
     barcode = Column(u'barcode', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
     comment = Column(u'comment', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
-    editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
+    #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
     quality = Column(u'quality', SmallInteger(), primary_key=False, nullable=False)
 
 class MBTrackName(Base):
@@ -150,14 +149,14 @@ class MBRecording(Base):
     artistcredit = orm.relation(MBArtistCredit, backref='recordings')
     length = Column(u'length', Integer(), primary_key=False)
     comment = Column(u'comment', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
-    editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
+    #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBRecordingGIDRedirect(Base):
 
     __tablename__ = 'recording_gid_redirect'
     
     gid = Column(u'gid', PGUuid(), primary_key=True, nullable=False)
-    recordingid = Column(u'newid', Integer(), ForeignKey('recording.id'), primary_key=False, nullable=False)
+    recordingid = Column(u'new_id', Integer(), ForeignKey('recording.id'), primary_key=False, nullable=False)
     recording = orm.relation(MBRecording)
 
 class MBReleaseGIDRedirect(Base):
@@ -165,7 +164,7 @@ class MBReleaseGIDRedirect(Base):
     __tablename__ = 'release_gid_redirect'
     
     gid = Column(u'gid', PGUuid(), primary_key=True, nullable=False)
-    recordingid = Column(u'newid', Integer(), ForeignKey('release.id'), primary_key=False, nullable=False)
+    recordingid = Column(u'new_id', Integer(), ForeignKey('release.id'), primary_key=False, nullable=False)
     recording = orm.relation(MBRelease)
 
 class MBTrackList(Base):
@@ -189,7 +188,7 @@ class MBTrack(Base):
     artistcreditid = Column(u'artist_credit', Integer(), ForeignKey('artist_credit.id'), primary_key=False, nullable=False)
     artistcredit = orm.relation(MBArtistCredit)
     length = Column(u'length', Integer(), primary_key=False)
-    editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
+    #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBMedium(Base):
 
@@ -203,7 +202,7 @@ class MBMedium(Base):
     position = Column(u'position', Integer(), primary_key=False, nullable=False)
     formatid = Column(u'format', Integer(), primary_key=False)
     name = Column(u'name', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
-    editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
+    #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBLinkType(Base):
 
@@ -211,15 +210,15 @@ class MBLinkType(Base):
     
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
     Column(u'parent', Integer(), ForeignKey('link_type.id'), primary_key=False)
-    Column(u'childorder', Integer(), primary_key=False, nullable=False)
+    Column(u'child_order', Integer(), primary_key=False, nullable=False)
     Column(u'gid', PGUuid(), primary_key=False, nullable=False)
-    Column(u'entitytype0', String(length=50, convert_unicode=False, assert_unicode=None), primary_key=False)
-    Column(u'entitytype1', String(length=50, convert_unicode=False, assert_unicode=None), primary_key=False)
+    Column(u'entity_type0', String(length=50, convert_unicode=False, assert_unicode=None), primary_key=False)
+    Column(u'entity_type1', String(length=50, convert_unicode=False, assert_unicode=None), primary_key=False)
     name = Column(u'name', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
     Column(u'description', Text(length=None, convert_unicode=False, assert_unicode=None), primary_key=False)
-    linkphrase = Column(u'linkphrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    rlinkphrase = Column(u'rlinkphrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    Column(u'shortlinkphrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    linkphrase = Column(u'link_phrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    rlinkphrase = Column(u'reverse_link_phrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    Column(u'short_link_phrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
     Column(u'priority', Integer(), primary_key=False, nullable=False)
 
 class MBLink(Base):
@@ -229,13 +228,13 @@ class MBLink(Base):
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
     link_type_id = Column(u'link_type', Integer(), ForeignKey('link_type.id'), primary_key=False, nullable=False)
     link_type = orm.relation(MBLinkType)
-    beginyear = Column(u'begindate_year', SmallInteger(), primary_key=False)
-    beginmonth = Column(u'begindate_month', SmallInteger(), primary_key=False)
-    beginday = Column(u'begindate_day', SmallInteger(), primary_key=False)
-    endyear = Column(u'enddate_year', SmallInteger(), primary_key=False)
-    endmonth = Column(u'enddate_month', SmallInteger(), primary_key=False)
-    endday = Column(u'enddate_day', SmallInteger(), primary_key=False)
-    Column(u'attributecount', Integer(), primary_key=False, nullable=False)
+    beginyear = Column(u'begin_date_year', SmallInteger(), primary_key=False)
+    beginmonth = Column(u'begin_date_month', SmallInteger(), primary_key=False)
+    beginday = Column(u'begin_date_day', SmallInteger(), primary_key=False)
+    endyear = Column(u'end_date_year', SmallInteger(), primary_key=False)
+    endmonth = Column(u'end_date_month', SmallInteger(), primary_key=False)
+    endday = Column(u'end_date_day', SmallInteger(), primary_key=False)
+    Column(u'attribute_count', Integer(), primary_key=False, nullable=False)
 
 class MBLArtistURL(Base):
 
@@ -245,7 +244,7 @@ class MBLArtistURL(Base):
     link_id = Column(u'link', Integer(), ForeignKey('link.id'), primary_key=False, nullable=False)
     artist_id = Column(u'entity0', Integer(), ForeignKey('artist.id'), primary_key=False, nullable=False)
     url_id = Column(u'entity1', Integer(), ForeignKey('url.id'), primary_key=False, nullable=False)
-    Column(u'editpending', Integer(), primary_key=False, nullable=False)
+    #Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBLReleaseGroupURL(Base):
 
@@ -255,7 +254,7 @@ class MBLReleaseGroupURL(Base):
     link_id = Column(u'link', Integer(), ForeignKey('link.id'), primary_key=False, nullable=False)
     release_group_id = Column(u'entity0', Integer(), ForeignKey('release_group.id'), primary_key=False, nullable=False)
     url_id = Column(u'entity1', Integer(), ForeignKey('url.id'), primary_key=False, nullable=False)
-    Column(u'editpending', Integer(), primary_key=False, nullable=False)
+    #Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBLReleaseURL(Base):
 
@@ -289,5 +288,5 @@ class MBURL(Base):
     url = Column(u'url', Text(length=None, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
     Column(u'description', Text(length=None, convert_unicode=False, assert_unicode=None), primary_key=False)
     Column(u'refcount', Integer(), primary_key=False, nullable=False)
-    Column(u'editpending', Integer(), primary_key=False, nullable=False)
+    #Column(u'editpending', Integer(), primary_key=False, nullable=False)
     

@@ -42,4 +42,3 @@ artist_albums = sa.Table('scatterbrainz_artist_albums', meta.metadata,
 Artist.albums = orm.relation(Album, secondary=artist_albums, backref='artists')
 Album.tracks = orm.relation(Track, backref='album')
 Track.file = orm.relation(AudioFile, backref='track')
-

@@ -15,7 +15,7 @@ CREATE TABLE scatterbrainz_artists_tmp AS (
     JOIN artist_credit_name   ON artist_credit.id = artist_credit_name.artist_credit
     JOIN artist               ON artist.id = artist_credit_name.artist
     JOIN artist_name          ON artist.name = artist_name.id
-    JOIN artist_name sortname ON artist.sortname = sortname.id
+    JOIN artist_name sortname ON artist.sort_name = sortname.id
 
 );
 
@@ -29,18 +29,18 @@ ALTER TABLE scatterbrainz_artists_tmp
 
 CREATE INDEX scatterbrainz_artists_search_tmp
     ON scatterbrainz_artists_tmp
- USING gin(to_tsvector('english', artist_name || ' ' || unaccent(artist_name)));
+ USING gin(to_tsvector('english', unaccent(artist_name)));
 
 
 CREATE TABLE scatterbrainz_albums_tmp AS (
 
   SELECT DISTINCT release_group.gid                            AS release_group_mbid
-	            , release_name.name                            AS release_group_name
-	            , release_group_meta.firstreleasedate_year     AS release_group_year
-	            , release_group_meta.firstreleasedate_month    AS release_group_month
-	            , release_group_meta.firstreleasedate_day      AS release_group_day
-	            , artist_name.name                             AS artist_credit_name
-	            , release_name.name || ' ' || artist_name.name AS search
+	        , release_name.name                            AS release_group_name
+	        , release_group_meta.first_release_date_year   AS release_group_year
+                , release_group_meta.first_release_date_month  AS release_group_month
+                , release_group_meta.first_release_date_day    AS release_group_day
+                , artist_name.name                             AS artist_credit_name
+                , release_name.name || ' ' || artist_name.name AS search
   FROM scatterbrainz_files
   JOIN release            ON release.gid = scatterbrainz_files.releasembid
   JOIN release_group      ON release_group.id = release.release_group
@@ -60,7 +60,7 @@ ALTER TABLE scatterbrainz_albums_tmp
 
 CREATE INDEX scatterbrainz_albums_search_tmp
     ON scatterbrainz_albums_tmp
- USING gin(to_tsvector('english', search || ' ' || unaccent(search)));
+ USING gin(to_tsvector('english', unaccent(search)));
 
 
 CREATE TABLE scatterbrainz_artist_albums_tmp AS (
@@ -129,7 +129,7 @@ ALTER TABLE scatterbrainz_tracks_tmp
 
 CREATE INDEX scatterbrainz_tracks_search_tmp
     ON scatterbrainz_tracks_tmp
- USING gin(to_tsvector('english', search || ' ' || unaccent(search)));
+ USING gin(to_tsvector('english', unaccent(search)));
 
 
 CREATE INDEX scatterbrainz_track_idx_mbid_tmp ON scatterbrainz_tracks_tmp (track_mbid);
