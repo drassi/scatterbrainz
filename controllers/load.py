@@ -3,6 +3,7 @@ from datetime import datetime
 
 import logging
 from mutagen.mp3 import MP3
+from mutagen.mp3 import HeaderNotFoundError
 from mutagen.easyid3 import EasyID3
 
 from pylons import request, response, session, tmpl_context as c
@@ -11,6 +12,7 @@ from scatterbrainz.lib.base import BaseController, render
 
 from scatterbrainz.model.meta import Session
 from scatterbrainz.model.audiofile import AudioFile
+from scatterbrainz.model.album import Album
 from scatterbrainz.model.musicbrainz import *
 
 log = logging.getLogger(__name__)
@@ -20,6 +22,7 @@ def _msg(s, msg):
     return s + msg + '<br><br>'
 
 BASE = '/home/dan/dev/pylons/scatterbrainz/scatterbrainz/'
+INCOMING = '/media/data/incoming/ds'
 MUSIC = BASE + 'public/music'
 VIEW = BASE + '/views/views.sql'
 RECORDING_MBID_KEY = 'UFID:http://musicbrainz.org'
@@ -43,7 +46,7 @@ class LoadController(BaseController):
             Session.begin()
         
         now = datetime.now()
-        initialLoad = Session.query(AudioFile).count() == 0
+        initialLoad = True #Session.query(AudioFile).count() == 0
         
         if initialLoad:
             s = _msg(s, 'Initial track loading!')
@@ -80,20 +83,30 @@ class LoadController(BaseController):
         
         added = 0
         skippedNoMBID = 0
-        
-        for dirname, dirnames, filenames in os.walk(MUSIC, followlinks=True):
+        release_groups_added = set()
+        unknownrelease = set()
+        unknownrecording = set()
+        alreadyhaverecordingrelease = set()
+        alreadyhavereleasegroup = set()
+        unicodeproblems = set()
+        fuckedmp3s = set()
+
+        for dirname, dirnames, filenames in os.walk(INCOMING, followlinks=True):
 
             for filename in filenames:
             
-                filepath = os.path.join(os.path.relpath(dirname, MUSIC), filename).decode('utf-8')
-                
                 if not os.path.splitext(filename)[-1].lower() == '.mp3':
+                    continue
+                
+                try:
+                    filepath = os.path.join(os.path.relpath(dirname, INCOMING), filename).decode('utf-8')
+                except UnicodeDecodeError:
+                    log.error('unicode problem ' + os.path.join(os.path.relpath(dirname, INCOMING), filename))
+                    unicodeproblems.add(os.path.join(os.path.relpath(dirname, INCOMING), filename))
                     continue
                 
                 if not initialLoad and filepath in filepaths:
                     continue
-                
-                added = added + 1
                 
                 if not initialLoad:
                     s = _msg(s, 'New file: ' + filepath)
@@ -107,14 +120,20 @@ class LoadController(BaseController):
                 filemtime = datetime.fromtimestamp(os.path.getmtime(fileabspath))
                 
                 # mp3 length, bitrate, etc.
-                mutagen = MP3(fileabspath)
+                try:
+                    mutagen = MP3(fileabspath)
+                except:
+                    fuckedmp3s.add(fileabspath)
+                    log.error('fucked mp3 ' + fileabspath)
+                    continue
                 info = mutagen.info
                 mp3bitrate = info.bitrate
                 mp3samplerate = info.sample_rate
                 mp3length = int(round(info.length))
                 if info.sketchy:
-                    raise Exception('sketchy mp3! ' + filename)
-                
+                    fuckedmp3s.add(fileabspath)
+                    log.error('sketchy mp3! ' + fileabspath)
+                    continue
                 # brainz!!
                 if RECORDING_MBID_KEY not in mutagen:
                     skippedNoMBID = skippedNoMBID + 1
@@ -139,7 +158,9 @@ class LoadController(BaseController):
                                      .filter(MBReleaseGIDRedirect.gid==releasembid) \
                                      .first()
                 if release is None:
-                    log.error('couldnt find release mbid ' + releasembid)
+                    if releasembid not in unknownrelease:
+                        log.error('couldnt find release mbid ' + releasembid)
+                        unknownrelease.add(releasembid)
                     continue
                 
                 recording = Session.query(MBRecording).filter(MBRecording.gid==recordingmbid).first()
@@ -149,18 +170,45 @@ class LoadController(BaseController):
                                        .filter(MBRecordingGIDRedirect.gid==recordingmbid) \
                                        .first()
                 if recording is None:
-                    log.error('couldnt find recording mbid ' + recordingmbid)
+                    if recordingmbid not in unknownrecording:
+                        log.error('couldnt find recording mbid ' + recordingmbid)
+                        unknownrecording.add(recordingmbid)
                     continue
                     
+                releasegroupmbid = release.releasegroup.gid
+                dirs = os.path.join(releasegroupmbid[:2], releasegroupmbid)
+                newdir = os.path.join(MUSIC, dirs)
+                if releasegroupmbid not in release_groups_added:
+                    existing = Session.query(Album) \
+                                      .filter(Album.mbid==releasegroupmbid) \
+                                      .first()
+                    if existing != None:
+                        if releasegroupmbid not in alreadyhavereleasegroup:
+                            log.info('already have release group ' + existing.artistcredit + ' ' + existing.name + ' ' + existing.mbid)
+                            alreadyhavereleasegroup.add(releasegroupmbid)
+                        continue
+                    else:
+                        os.makedirs(newdir)
+                        release_groups_added.add(releasegroupmbid)
+                
                 existing = Session.query(AudioFile) \
                                   .filter(AudioFile.recordingmbid==recording.gid) \
                                   .filter(AudioFile.releasembid==release.gid) \
                                   .first()
                 if existing:
-                    log.error('already existing recording/release combo for file ' + filepath)
+                    if (recording.gid + '-' + release.gid) not in alreadyhaverecordingrelease:
+                        log.error('already existing recording/release combo for file ' + filepath)
+                        alreadyhaverecordingrelease.add(recording.gid + '-' + release.gid)
                     continue
 
-                track = AudioFile(filepath=filepath,
+                # check for existing release group, make new release group directory if necessary               
+                # link file into new directory
+                newfilename = release.gid + '-' + recording.gid + '.mp3'
+                ln = os.path.join(newdir, newfilename)
+                os.link(fileabspath, ln)
+                lnrelpath = os.path.join(dirs, newfilename)
+
+                track = AudioFile(filepath=lnrelpath,
                               filesize=filesize,
                               filemtime=filemtime,
                               mp3bitrate=mp3bitrate,
@@ -170,8 +218,9 @@ class LoadController(BaseController):
                               release=release,
                               added=now,
                 )
-                Session.save(track)
-        
+                Session.add(track)
+                added = added + 1
+ 
         if commit:
             s = _msg(s, 'Building model for new tracks took ' + str(datetime.now() - then))
             then = datetime.now()
@@ -179,6 +228,12 @@ class LoadController(BaseController):
             Session.commit()
             s = _msg(s, """Committed %(added)d new tracks, skipped %(skipped)d""" \
                    % {'added':added-skippedNoMBID, 'skipped':skippedNoMBID} + ', took ' + str(datetime.now() - then))
+            log.error("unknownrelease: " + unknownrelease.__str__())
+            log.error("unknownrecording: " + unknownrecording.__str__())
+            log.error("alreadyhaverecordingrelease: " + alreadyhaverecordingrelease.__str__())
+            log.error("alreadyhavereleasegroup: " + alreadyhavereleasegroup.__str__())
+            log.error("unicodeproblems: " + unicodeproblems.__str__())
+            log.error("fuckedmp3s: " + fuckedmp3s.__str__())
         else:
             s = _msg(s, 'Saw ' + str(added) + ' new tracks, took ' + str(datetime.now() - then))
         return s
