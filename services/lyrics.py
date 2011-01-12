@@ -46,7 +46,7 @@ def get_lyrics(Session, track):
                     lyricurl = 'http://lyrics.wikia.com/index.php?title='+page+'&action=edit'
                     log.info('[lyric] Hitting ' + lyricurl)
                     lyrichtml = urllib.urlopen(lyricurl).read()
-                    lyricREstr = "&lt;lyrics?&gt;(?P<lyrics>.*)&lt;/lyrics?&gt;"
+                    lyricREstr = "(<|&lt;)lyrics?(>|&gt;)(?P<lyrics>.*)(<|&lt;)/lyrics?(>|&gt;)"
                     lyricRE = re.search(lyricREstr, lyrichtml, re.S)
                     if lyricRE:
                         lyrics = lyricRE.group('lyrics').strip('\n')
