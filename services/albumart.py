@@ -114,7 +114,7 @@ def _fetchAlbumArt(artist, album, url):
     delchars = ''.join(c for c in map(chr, range(256)) if not c.isalnum())
     delchars = delchars.translate(None," ()'&!-+_.")
     filename = (artist + ' - ' + album).encode('utf-8').translate(None, delchars) + '.' + extension
-    filepath = 'scatterbrainz/public/art/' + filename
+    filepath = '/media/data/albumart/' + filename
     log.info('[art] Saving ' + url + ' to ' + filepath)
     urllib.urlretrieve(url, filepath)
     return unicode('/art/' + filename)
