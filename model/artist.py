@@ -11,9 +11,9 @@ class Artist(Base):
 
     __tablename__ = 'scatterbrainz_artists'
 
-    name = Column(u'artist_name', Unicode(), primary_key=True)
+    name = Column(u'artist_name', Unicode(), nullable=False)
     sortname = Column(u'artist_sort_name', Unicode(), nullable=False)
-    mbid = Column(u'artist_mbid', Unicode(), nullable=False)
+    mbid = Column(u'artist_mbid', Unicode(), primary_key=True)
 
     def toTreeJSON(self, children=None):
         json = {
