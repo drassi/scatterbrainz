@@ -487,32 +487,33 @@ class HelloController(BaseController):
         mbid = request.params['mbid']
         
         # albums
-        albums = Session.query(MBReleaseGroup) \
+        albums = Session.query(MBReleaseGroup, MBReleaseName, MBReleaseGroupMeta, MBReleaseGroupType) \
                         .join(MBArtistCredit, MBArtistCreditName, MBArtist) \
-                        .join(MBReleaseGroupMeta) \
+                        .join(MBReleaseGroupMeta) .join(MBReleaseGroupType) \
+                        .join(MBReleaseName) \
                         .filter(MBArtist.gid==mbid) \
                         .order_by([MBReleaseGroupMeta.year, MBReleaseGroupMeta.month, MBReleaseGroupMeta.day]) \
                         .all()
         albummap = {}
-        for album in albums:
-            if album.releasegrouptype:
-                t = album.releasegrouptype.name
+        for (album, name, meta, rgtype) in albums:
+            if rgtype:
+                t = rgtype.name
             else:
                 t = 'Unknown'
-            if album.meta[0] and album.meta[0].year:
-                year = album.meta[0].year
+            if meta and meta.year:
+                year = meta.year
             else:
                 year = '?'
             albummap[album.gid] = {'mbid' : album.gid,
                                    'type' : t,
-                                   'name' : album.name.name,
+                                   'name' : name.name,
                                    'year' : year,
                                    'local' : False}
         localalbums = Session.query(Album).filter(Album.mbid.in_(albummap.keys())).all()
         for album in localalbums:
             albummap[album.mbid]['local'] = True
         albumjson = []
-        for album in albums:
+        for (album, name, meta, rgtype) in albums:
             if albummap[album.gid]['type'] != 'Non-Album Tracks':
                 albumjson.append(albummap[album.gid])
         
