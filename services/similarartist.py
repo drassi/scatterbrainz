@@ -34,17 +34,18 @@ def get_similar_artists(Session, lastfmNetwork, mbartist):
                 similarmbidtomatch[lastfmartist.mbid] = lastfmartist.match
         if not similarmbidtomatch:
             log.warn('No similar artists found for ' + mbid)
+        similarmbids = similarmbidtomatch.keys()
+        similarmbidslocal = set(map(lambda x: x[0], Session.query(MBArtist.gid).filter(MBArtist.gid.in_(similarmbids)).all()))
         similarartists = []
-        for similarmbid in similarmbidtomatch.keys():
-            similarartist = Session.query(MBArtist).filter_by(gid=similarmbid).first()
-            if similarartist:
+        for similarmbid in similarmbids:
+            if similarmbid in similarmbidslocal:
                 similarartists.append(SimilarArtist(unicode(mbid), unicode(similarmbid), similarmbidtomatch[similarmbid], now))
             else:
                 log.warn('Couldnt find similar artist ' + similarmbid + ' in artists table!')
         Session.add_all(similarartists)
         Session.commit()
         similarartists.sort(lambda a,b: cmp(b.match, a.match))
-        similarmbids = map(lambda x: x.similar_artist_mbid, similarartists)
+        similarmbids = similarmbidslocal
     
     return map(unicode, similarmbids)
 

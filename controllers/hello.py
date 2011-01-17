@@ -450,10 +450,10 @@ class HelloController(BaseController):
         mbid = request.params['mbid']
         artist = Session.query(MBArtist).filter(MBArtist.gid==mbid).one()
         similarartistmbids = similarartist.get_similar_artists(Session, self.lastfmNetwork, artist)
-        similarartists = Session.query(MBArtist).filter(MBArtist.gid.in_(similarartistmbids)).all()
+        similarartists = Session.query(MBArtist, MBArtistName).join(MBArtist.name).filter(MBArtist.gid.in_(similarartistmbids)).all()
         similarmap = {}
         for artist in similarartists:
-            similarmap[artist.gid] = {'mbid' : artist.gid, 'name' : artist.name.name, 'local' : False}
+            similarmap[artist[0].gid] = {'mbid' : artist[0].gid, 'name' : artist[1].name, 'local' : False}
         localsimilarartists = Session.query(Artist).filter(Artist.mbid.in_(similarartistmbids)).all()
         for artist in localsimilarartists:
             similarmap[artist.mbid]['local'] = True
