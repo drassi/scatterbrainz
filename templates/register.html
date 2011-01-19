@@ -5,12 +5,14 @@
 <script type="text/javascript" src="/static/register.js"></script>
 </head>
 <body>
+  Please register:<br /><br />
   <form action="${h.url('/login_handler')}" method="POST">
     user <input type="text" id="login" name="login" /><br />
-    pass <input type="text" id="password" name="password" /><br />
-    <input id="code" type="hidden" name="code" value="${c.code}"></input>
+    pass <input type="password" id="password" name="password" />
+    <input id="code" type="hidden" name="code" value="${c.code}" />
+    <br />
   </form>
-  <input id="submit" type="submit" value="Register" />
+  <button id="submit">Register</button>
 </body>
 </html>
 
