@@ -1036,6 +1036,7 @@ function populateArtistBrowserAlbumsRelationships(data) {
     $('#liveCount').text(liveCount);
     $('#compilationCount').text(compilationCount);
     $('#otherCount').text(otherCount);
+    expandHeightToFitBrowser($('#artistBrowserAlbumList'));
 }
 
 function toggleAlbumVisibility() {
