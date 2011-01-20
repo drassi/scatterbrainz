@@ -16,5 +16,5 @@ function handle() {
             $('#submit').one('click', handle);
         }
     });
-};
+}
 
