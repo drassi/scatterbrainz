@@ -521,16 +521,14 @@ class HelloController(BaseController):
         # should be done much better....
         artist1 = aliased(MBArtist)
         artist2 = aliased(MBArtist)
-        relations = Session.query(MBLArtistArtist) \
-                           .join((artist1, MBLArtistArtist.artist1),
-                                 (artist2, MBLArtistArtist.artist2)) \
-                           .filter(or_(artist1.gid==mbid,
-                                       artist2.gid==mbid)) \
+        relations = Session.query(MBLArtistArtist, artist1, artist2, MBLink, MBLinkType) \
+                           .join((artist1, MBLArtistArtist.artist1), (artist2, MBLArtistArtist.artist2)) \
+                           .join(MBLink, MBLinkType) \
+                           .filter(or_(artist1.gid==mbid, artist2.gid==mbid)) \
                            .all()
         rs = {}
-        for r in relations:
-            link = r.link
-            ltype = link.link_type.name
+        for (r, artist1, artist2, link, linktype) in relations:
+            ltype = linktype.name
             if ltype not in self.rmap:
                 continue
             sym = self.rmap[ltype]['symmetric']
@@ -539,14 +537,14 @@ class HelloController(BaseController):
                     rs[ltype] = []
                 else:
                     rs[ltype] = [[],[]]
-            if r.artist1.gid == mbid:
-                other = r.artist2
+            if artist1.gid == mbid:
+                other = artist2
                 if sym:
                     place = rs[ltype]
                 else:
                     place = rs[ltype][0]
-            elif r.artist2.gid == mbid:
-                other = r.artist1
+            elif artist2.gid == mbid:
+                other = artist1
                 if sym:
                     place = rs[ltype]
                 else:
