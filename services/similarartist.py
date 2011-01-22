@@ -31,7 +31,7 @@ def get_similar_artists(Session, lastfmNetwork, mbartist):
         similarmbidtomatch = {}
         for lastfmartist in similarlastfm:
             if lastfmartist.mbid is not None:
-                similarmbids.append(lastfmartist.mbid])
+                similarmbids.append(lastfmartist.mbid)
                 similarmbidtomatch[lastfmartist.mbid] = lastfmartist.match
         if not similarmbidtomatch:
             log.warn('No similar artists found for ' + mbid)
