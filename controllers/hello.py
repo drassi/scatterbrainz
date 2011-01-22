@@ -9,6 +9,9 @@ import random as rand
 import simplejson
 import htmlentitydefs
 
+from httplib import BadStatusLine
+from socket import timeout as SocketTimeout
+
 from datetime import datetime, timedelta
 
 import logging
@@ -148,8 +151,12 @@ class HelloController(BaseController):
         trackid = request.params['id'].split('_')[1]
         artists = Session.query(MBArtist).join(MBArtistCreditName).join(MBArtistCredit).join(MBRecording).join(AudioFile).join(Track).filter(Track.id==trackid).all()
         similarMbids = set([])
-        for artist in artists:
-            similarMbids.update(similarartist.get_similar_artists(Session, self.lastfmNetwork, artist))
+        try:
+            for artist in artists:
+                similarMbids.update(similarartist.get_similar_artists(Session, self.lastfmNetwork, artist))
+        except (BadStatusLine, SocketTimeout) as e:
+            log.error('[lastfm] down? ' + e.__repr__())
+            return ''
         artistMbidsWithAlbums = Session.query(Artist.mbid) \
                                        .join(artist_albums) \
                                        .filter(Artist.mbid.in_(similarMbids)) \
@@ -334,11 +341,16 @@ class HelloController(BaseController):
             raise Exception('must supply trackid or artist mbid')
         lfmartist = self.lastfmNetwork.get_artist(None)
         try:
-            images = lfmartist.get_images_by_mbid(artistMbid, limit=20)
-        except WSError, e:
-            log.warn('Got last.fm WSError [' + e.details + '] retrying with string name')
-            artistName = Session.query(MBArtistName.name).join(MBArtist.name).filter(MBArtist.gid==artistMbid).one()[0]
-            images = self.lastfmNetwork.get_artist(artistName).get_images(limit=20)
+            try:
+                images = lfmartist.get_images_by_mbid(artistMbid, limit=20)
+            except WSError, e:
+                log.warn('Got last.fm WSError [' + e.details + '] retrying with string name')
+                artistName = Session.query(MBArtistName.name).join(MBArtist.name).filter(MBArtist.gid==artistMbid).one()[0]
+                images = self.lastfmNetwork.get_artist(artistName).get_images(limit=20)
+        except (BadStatusLine, SocketTimeout) as e:
+            log.error('[lastfm] down? ' + e.__repr__())
+            return '{}'
+            
         return simplejson.dumps({
             'images' : map(lambda i:[i.sizes.largesquare, i.sizes.original], images)
         })
@@ -449,7 +461,11 @@ class HelloController(BaseController):
     def getSimilarArtistsAJAX(self):
         mbid = request.params['mbid']
         artist = Session.query(MBArtist).filter(MBArtist.gid==mbid).one()
-        similarartistmbids = similarartist.get_similar_artists(Session, self.lastfmNetwork, artist)
+        try:
+            similarartistmbids = similarartist.get_similar_artists(Session, self.lastfmNetwork, artist)
+        except (BadStatusLine, SocketTimeout) as e:
+            log.error('[lastfm] down? ' + e.__repr__())
+            return '{}'
         similarartists = Session.query(MBArtist, MBArtistName).join(MBArtist.name).filter(MBArtist.gid.in_(similarartistmbids)).all()
         similarmap = {}
         for artist in similarartists:

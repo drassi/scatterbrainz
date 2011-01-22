@@ -789,11 +789,11 @@ class _Request(object):
         (HOST_NAME, HOST_SUBDIR) = self.network.ws_server
         
         if self.network.is_proxy_enabled():
-            conn = httplib.HTTPConnection(host = self._get_proxy()[0], port = self._get_proxy()[1])
+            conn = httplib.HTTPConnection(host = self._get_proxy()[0], port = self._get_proxy()[1], timeout=3)
             conn.request(method='POST', url="http://" + HOST_NAME + HOST_SUBDIR, 
                 body=data, headers=headers)
         else:
-            conn = httplib.HTTPConnection(host=HOST_NAME)
+            conn = httplib.HTTPConnection(host=HOST_NAME, timeout=3)
             conn.request(method='POST', url=HOST_SUBDIR, body=data, headers=headers)
         
         response = conn.getresponse()
@@ -3594,7 +3594,7 @@ class _ScrobblerRequest(object):
     def execute(self):
         """Returns a string response of this request."""
         
-        connection = httplib.HTTPConnection(self.hostname)
+        connection = httplib.HTTPConnection(self.hostname, timeout=3)
 
         data = []
         for name in self.params.keys():
