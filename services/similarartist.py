@@ -27,11 +27,11 @@ def get_similar_artists(Session, lastfmNetwork, mbartist):
             artistName = Session.query(MBArtistName.name).join(MBArtist.name).filter(MBArtist.gid==mbid).one()[0]
             log.warn('Got last.fm WSError [' + e.details + '] retrying with string name ' + artistName)
             similarlastfm = lastfmNetwork.get_artist(artistName).get_similar(limit=250)
-        similarmbids = []
+        similarmbids = set()
         similarmbidtomatch = {}
         for lastfmartist in similarlastfm:
             if lastfmartist.mbid is not None:
-                similarmbids.append(lastfmartist.mbid)
+                similarmbids.add(lastfmartist.mbid)
                 similarmbidtomatch[lastfmartist.mbid] = lastfmartist.match
         if not similarmbidtomatch:
             log.warn('No similar artists found for ' + mbid)
