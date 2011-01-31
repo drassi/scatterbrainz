@@ -25,8 +25,6 @@ from pylons import request, response, session, tmpl_context as c
 
 from scatterbrainz.lib.base import BaseController, render
 
-from scatterbrainz.external.my_MB import getRelease, searchRelease
-
 log = logging.getLogger(__name__)
 
 from scatterbrainz.model.meta import Session

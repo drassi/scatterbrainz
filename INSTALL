@@ -1,6 +1,6 @@
 This is just random commands for now.  Eventually it'll be an install guide.
 
-curl http://pylonshq.com/download/1.0/go-pylons.py | python - pylons
+curl http://pylonshq.com/download/1.0/go-pylons.py | python - pylons --no-site-packages
 cd pylons
 source bin/activate
 echo -e "\nTrue" | paster create -t pylons scatterbrainz
@@ -10,7 +10,12 @@ git clone git@github.com:drassi/scatterbrainz.git
 python setup.py develop
 easy_install repoze.what-quickstart
 easy_install repoze.what-pylons
-easy_install python-musicbrainz2
+easy_install mutagen
+apt-get install python-dev 
+easy_install psycopg2
+apt-get install libxslt1-dev
+pip install lxml
+
 paster setup-app development.ini
 paster serve development.ini
 
@@ -27,13 +32,6 @@ class Config:
     LAST_FM_API_SECRET = 'asdf'
     LAST_FM_USER = 'asdf'
     LAST_FM_PASSWORD = 'asdf'
-
-
-
-
-
-mutagen
-
 
 
 OS X stuff:
