@@ -40,4 +40,14 @@ export PATH=$PATH:/opt/local/bin/
 sudo port install mod_wsgi
 sudo apachectl -k start
 
+database stuff
+
+apt-get install postgresql-server-dev-9.0
+git clone git://git.musicbrainz.org/musicbrainz-server.git
+cd musicbrainz-server/postgresql-unaccent
+make
+sudo make install
+cd ../admin/sql
+psql -d musicbrainz -f CreateSearchConfiguration.sql
+psql -U musicbrainz -f CreateSearchIndexes.sql
 
