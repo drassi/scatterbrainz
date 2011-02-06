@@ -503,7 +503,8 @@ class HelloController(BaseController):
         # albums
         albums = Session.query(MBReleaseGroup, MBReleaseName, MBReleaseGroupMeta, MBReleaseGroupType) \
                         .join(MBArtistCredit, MBArtistCreditName, MBArtist) \
-                        .join(MBReleaseGroupMeta) .join(MBReleaseGroupType) \
+                        .join(MBReleaseGroupMeta) \
+                        .join(MBReleaseGroupType) \
                         .join(MBReleaseName) \
                         .filter(MBArtist.gid==mbid) \
                         .order_by([MBReleaseGroupMeta.year, MBReleaseGroupMeta.month, MBReleaseGroupMeta.day]) \
@@ -605,7 +606,59 @@ class HelloController(BaseController):
                     rsordered.append({'text' : phrase, 'data' : data})
             
         return simplejson.dumps({'albums' : albumjson, 'relationships' : rsordered})
-    
+
+    def searchShopAJAX(self):
+        artist = request.params['artist']
+        album = request.params['album']
+        mbid = request.params['mbid']
+        if not artist and not album and not mbid:
+            return simplejson.dumps({'albums':[], 'numlocal':0, 'truncated':False})
+        query = Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
+                       .join(MBReleaseName) \
+                       .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
+                       .join(MBReleaseGroupMeta) \
+                       .join(MBReleaseGroupType)
+        limit = 30
+        if mbid:
+            query = query.filter(MBReleaseGroup.gid==mbid)
+        else:
+            if album:
+                query = query.filter("to_tsvector('mb_simple', release_name.name) " + \
+                              "@@ plainto_tsquery('mb_simple', :album)") \
+                             .params(album=album)
+            if artist:
+                query = query.filter("to_tsvector('mb_simple', artist_name.name) " + \
+                              "@@ plainto_tsquery('mb_simple', :artist)") \
+                             .params(artist=artist)
+        results = query.limit(limit).all()
+        resultmbids = set()
+        for (album, albumname, artistname, rgmeta, rgtype) in results:
+            resultmbids.add(album.gid)
+        localmbids = set()
+        for (localmbid,) in Session.query(Album.mbid).filter(Album.mbid.in_(resultmbids)).all():
+            localmbids.add(localmbid)
+        albums = []
+        for (album, albumname, artistname, rgmeta, rgtype) in results:
+            if album.gid in localmbids:
+                continue
+            if rgmeta and rgmeta.year:
+                year = rgmeta.year
+            else:
+                year = '?'
+            if rgtype and rgtype.name:
+                rtype = rgtype.name
+            else:
+                rtype = 'Unknown'
+            albums.append({
+                'mbid'   : album.gid,
+                'album'  : albumname.name,
+                'artist' : artistname.name,
+                'year'   : year,
+                'type'   : rtype
+            })
+        truncated = len(results) == limit
+        return simplejson.dumps({'albums':albums, 'numlocal':len(localmbids), 'truncated':truncated})
+
     def _mapify(self, urls):
         m = {}
         for (url, name) in urls:

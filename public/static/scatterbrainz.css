@@ -635,3 +635,29 @@ div#artistBrowserRelationships {
     max-height: 35%;
 }
 
+div#shopSearch {
+    width: 50%;
+    margin: 10px;
+}
+
+div#shopSearchResults {
+    width: 50%;
+    margin: 10px;
+}
+
+span.shopAlbumArtist {
+    width: 30%;
+}
+
+span.shopAlbumAlbum {
+    width: 40%;
+}
+
+span.shopAlbumYear {
+    width: 15%;
+}
+
+span.shopAlbumType {
+    width: 15%;
+}
+

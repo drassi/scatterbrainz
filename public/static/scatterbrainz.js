@@ -377,6 +377,9 @@ $(document).ready(function(){
         );
     }
     
+    /** Shop **/
+    $('form#shopSearchForm').submit(shopSearchSubmit);
+    
     if (window.location.hash == "#scrobble") {
         alert('scrobbling..');
     }
@@ -385,7 +388,8 @@ $(document).ready(function(){
         'playlistNav' : {'selector' : $('.browsePane, #browsePaneSplitter')},
         'nowPlayingNav' : {'selector' : $('#nowPlayingContainer')},
         'artistNav' : {'selector' : $('#artistBrowserContainer')
-                     , 'callback' : openArtistNav}
+                     , 'callback' : openArtistNav},
+        'shopNav' : {'selector' : $('#shopContainer')}
     };
     
     $('div#navigation button.screen').click(function() {
@@ -1083,5 +1087,33 @@ function searchAlbumHandler() {
             + 'format=MP3&'
             + 'order_by=seeders';
     window.open(url, '_newtab');
+}
+
+function shopSearchSubmit() {
+    $.getJSON(
+        '/hello/searchShopAJAX?',
+        {'artist': $('input#shopSearchArtist').attr('value'),
+         'album': $('input#shopSearchAlbum').attr('value'),
+         'mbid' : ''},
+        showShopSearchResults
+    );
+    return false;
+}
+
+function showShopSearchResults(data) {
+    var numlocal = data['numlocal'];
+    var truncated = data['truncated'];
+    var albums = data['albums'];
+    $('div#shopSearchResults').empty();
+    for (var i=0; i<albums.length; i++) {
+        var album = albums[i];
+        var e = $('<div>').addClass('artistAlbum')
+                          .append($('<span>').addClass('shopAlbumArtist').text(album['artist']).attr('title', album['artist']))
+                          .append($('<span>').addClass('shopAlbumAlbum').text(album['album']).attr('title', album['album']))
+                          .append($('<span>').addClass('shopAlbumYear').text(album['year']))
+                          .append($('<span>').addClass('shopAlbumType').text(album['type']))
+                          .data('mbid', album['mbid']);
+        $('div#shopSearchResults').append(e);
+    }
 }
 

@@ -150,10 +150,22 @@
     </div>
 </div>
 
+<div id="shopContainer" class="hidden transparent window">
+    <div id="shopSearch">
+        <form id="shopSearchForm">
+            Artist: <input id="shopSearchArtist" type="text" />
+            Album: <input id="shopSearchAlbum" type="text" />
+            <input type="submit" value="Search">
+        </form>
+    </div>
+    <div id="shopSearchResults"></div>
+</div>
+
 <div id="navigation" class="transparent">
    <button id="playlistNav" class="selectedNav screen">Playlist</button>
    <button id="nowPlayingNav" class="screen">Now Playing</button>
    <button id="artistNav" class="screen">Artist</button>
+   <button id="shopNav" class="screen">Shop</button>
    <button id="logout">Logout</button>
    <span id="welcome">Welcome back, <b>${c.username}</b>!</span>
 </div>
@@ -180,7 +192,6 @@
             <div id="playingTrack" class="dashboardMarquee"></div>
         </div>
     </div>
-    
 
     <div id="controlsDashboard" class="left">
         <div id="player_container"> 
