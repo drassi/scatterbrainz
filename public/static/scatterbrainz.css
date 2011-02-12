@@ -640,24 +640,38 @@ div#shopSearch {
     margin: 10px;
 }
 
+input#shopSearchArtist, input#shopSearchAlbum {
+    width: 25%;
+}
+
 div#shopSearchResults {
     width: 50%;
     margin: 10px;
 }
 
 span.shopAlbumArtist {
-    width: 30%;
+    width: 28%;
 }
 
 span.shopAlbumAlbum {
-    width: 40%;
+    width: 37%;
 }
 
 span.shopAlbumYear {
-    width: 15%;
+    width: 10%;
 }
 
 span.shopAlbumType {
     width: 15%;
+}
+
+span.shopAlbumSearchLink {
+    width: 10%;
+    cursor: pointer;
+    color: -webkit-link;
+}
+
+span#shopSearchStatus {
+    font-weight: bold;
 }
 

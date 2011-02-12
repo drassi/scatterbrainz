@@ -412,6 +412,8 @@ $(document).ready(function(){
     $('.playAlbumButton').live('click', playAlbumHandler);
     $('.queueAlbumButton').live('click', queueAlbumHandler);
     $('.searchAlbumButton').live('click', searchAlbumHandler);
+    
+    $('span.shopAlbumSearchLink').live('click', searchForShopAlbum);
 });
 
 function switchWindow(self, runCallback) {
@@ -1090,8 +1092,9 @@ function searchAlbumHandler() {
 }
 
 function shopSearchSubmit() {
+    $('span#shopSearchStatus').show();
     $.getJSON(
-        '/hello/searchShopAJAX?',
+        '/hello/searchShopAJAX',
         {'artist': $('input#shopSearchArtist').attr('value'),
          'album': $('input#shopSearchAlbum').attr('value'),
          'mbid' : ''},
@@ -1112,8 +1115,23 @@ function showShopSearchResults(data) {
                           .append($('<span>').addClass('shopAlbumAlbum').text(album['album']).attr('title', album['album']))
                           .append($('<span>').addClass('shopAlbumYear').text(album['year']))
                           .append($('<span>').addClass('shopAlbumType').text(album['type']))
-                          .data('mbid', album['mbid']);
+                          .append($('<span>').addClass('shopAlbumSearchLink').text('Search').data('mbid', album['mbid']));
         $('div#shopSearchResults').append(e);
     }
+    $('span#shopSearchStatus').hide();
+}
+
+function searchForShopAlbum() {
+    $('span#shopSearchStatus').show();
+    var mbid = $(this).data('mbid');
+    $.getJSON(
+        '/hello/searchShopAlbumAJAX',
+        {'mbid' : mbid},
+        showShopAlbumSearchResults
+    );
+}
+
+function showShopAlbumSearchResults(data) {
+    $('span#shopSearchStatus').hide();
 }
 

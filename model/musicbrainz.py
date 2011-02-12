@@ -172,7 +172,7 @@ class MBTrackList(Base):
     __tablename__ = 'tracklist'
     
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
-    trackcount = Column(u'trackcount', Integer(), primary_key=False, nullable=False)
+    trackcount = Column(u'track_count', Integer(), primary_key=False, nullable=False)
 
 class MBTrack(Base):
 
@@ -184,7 +184,8 @@ class MBTrack(Base):
     tracklistid = Column(u'tracklist', Integer(), ForeignKey('tracklist.id'), primary_key=False, nullable=False)
     tracklist = orm.relation(MBTrackList)
     position = Column(u'position', Integer(), primary_key=False, nullable=False)
-    nameid = Column(u'name', Integer(), primary_key=False, nullable=False)
+    nameid = Column(u'name', Integer(), ForeignKey('track_name.id'), primary_key=False, nullable=False)
+    name = orm.relation(MBTrackName)
     artistcreditid = Column(u'artist_credit', Integer(), ForeignKey('artist_credit.id'), primary_key=False, nullable=False)
     artistcredit = orm.relation(MBArtistCredit)
     length = Column(u'length', Integer(), primary_key=False)

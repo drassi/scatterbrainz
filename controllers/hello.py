@@ -42,6 +42,7 @@ from scatterbrainz.services import lyrics as lyricsservice
 from scatterbrainz.services import artistbio
 from scatterbrainz.services import albumsummary
 from scatterbrainz.services import similarartist
+from scatterbrainz.services import shop as shopservice
 
 from scatterbrainz.lib import pylast
 from scatterbrainz.lib.pylast import WSError
@@ -658,7 +659,17 @@ class HelloController(BaseController):
             })
         truncated = len(results) == limit
         return simplejson.dumps({'albums':albums, 'numlocal':len(localmbids), 'truncated':truncated})
-
+    
+    def searchShopAlbumAJAX(self):
+        mbid = request.params['mbid']
+        (album, albumname, artistname) = Session.query(MBReleaseGroup, MBReleaseName, MBArtistName) \
+                                                .join(MBReleaseName) \
+                                                .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
+                                                .filter(MBReleaseGroup.gid==mbid) \
+                                                .one()
+        shopservice.download(Session, mbid)
+        return simplejson.dumps({})
+    
     def _mapify(self, urls):
         m = {}
         for (url, name) in urls:
