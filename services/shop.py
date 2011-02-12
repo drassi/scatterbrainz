@@ -3,6 +3,10 @@ import urllib
 import urllib2
 import difflib
 import logging
+import hashlib
+import bencode
+import tempfile
+import xmlrpclib
 import lxml.html as lxml
 from operator import itemgetter
 from multiprocessing import Lock
@@ -38,7 +42,7 @@ def login():
     maybeloggedin = True
 
 """
-Search the shop for the given album.  Return an order id, or None if the album wasn't found.
+Search the shop for the given album.  Return torrent info hash, or None if album wasn't found
 """
 def download(Session, mbid):
     with shoplock:
@@ -166,25 +170,30 @@ def download(Session, mbid):
                 releasescores.sort(key=itemgetter('avg'), reverse=True)
                 if releasescores:
                     releaseid = releasescores[0]['releaseid']
-                    log.info('download ' + download['torrentid'] +
-                             ' has ' + str(download['seeders']) +
-                             ' seeders, match to album ' + releaseid)
-                    return download['torrentid'] + ' -> ' +  releaseid
+                    torrenturl = download['url']
+                    torrentdata = opener.open(torrenturl).read()
+                    torrentdecode = bencode.bdecode(torrentdata)
+                    infohash = hashlib.sha1(bencode.bencode(torrentdecode['info'])).hexdigest().upper()
+                    with tempfile.NamedTemporaryFile(delete=False) as torrentfile:
+                        torrentpath = torrentfile.name
+                        torrentfile.write(torrentdata)
+                    rtorrent = xmlrpclib.ServerProxy("http://localhost/RPC2")‎
+                    rtorrent.load_start(torrentpath, "execute=rm," + torrentpath)
+                    log.info('[shop] downloaded ' + torrenturl + ' has ' + str(download['seeders']) +
+                             ' seeders, infohash=' + infohash + ', match to album ' + releaseid)
+                    return infohash
     log.info('[shop] no matches, sorry :(')
-    return 'sorry : ('
+    return None
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def getPercentDone(infohash):
+    rtorrent = xmlrpclib.ServerProxy("http://localhost/RPC2")
+    try:
+        done = rtorrent.d.get_bytes_done(infohash)
+        total = rtorrent.d.get_size_bytes(infohash)
+        return 100 * done / total
+    except xmlrpclib.Fault as e:
+        if e.faultString == 'Could not find info-hash.':
+            return 0
+        else:
+            raise e
 
