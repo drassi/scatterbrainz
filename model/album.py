@@ -20,6 +20,15 @@ class Album(Base):
     month = Column(u'release_group_month', Integer())
     day = Column(u'release_group_day', Integer())
     search = Column(u'search', Unicode())
+    
+    def __init__(self, mbid, name, artistcredit, year, month, day, search):
+        self.mbid = mbid
+        self.name = name
+        self.artistcredit = artistcredit
+        self.year = year
+        self.month = month
+        self.day = day
+        self.search = search
 
     def getReleaseDate(self):
         if self.year is not None:

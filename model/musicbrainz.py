@@ -54,8 +54,8 @@ class MBArtistCredit(Base):
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
     nameid = Column(u'name', Integer(), ForeignKey('artist_name.id'), primary_key=False, nullable=False)
     name = orm.relation(MBArtistName, backref='artistcredits')
-    artistcount = Column(u'artistcount', SmallInteger(), primary_key=False, nullable=False)
-    refcount = Column(u'refcount', Integer(), primary_key=False)
+    artistcount = Column(u'artist_count', SmallInteger(), primary_key=False, nullable=False)
+    refcount = Column(u'ref_count', Integer(), primary_key=False)
 
 class MBArtistCreditName(Base):
 
@@ -288,6 +288,6 @@ class MBURL(Base):
     Column(u'gid', PGUuid(), primary_key=False, nullable=False)
     url = Column(u'url', Text(length=None, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
     Column(u'description', Text(length=None, convert_unicode=False, assert_unicode=None), primary_key=False)
-    Column(u'refcount', Integer(), primary_key=False, nullable=False)
+    Column(u'ref_count', Integer(), primary_key=False, nullable=False)
     #Column(u'editpending', Integer(), primary_key=False, nullable=False)
     

@@ -34,6 +34,7 @@ from scatterbrainz.model.artist import Artist
 from scatterbrainz.model.track import Track
 from scatterbrainz.model import artist_albums
 from scatterbrainz.model.musicbrainz import *
+from scatterbrainz.model.auth import User
 
 from scatterbrainz.config.config import Config
 
@@ -667,8 +668,23 @@ class HelloController(BaseController):
                                                 .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
                                                 .filter(MBReleaseGroup.gid==mbid) \
                                                 .one()
-        shopservice.download(Session, mbid)
-        return simplejson.dumps({})
+        user_name = request.environ['repoze.what.credentials']['repoze.what.userid']
+        user_id = Session.query(User).filter(User.user_name==user_name).one().user_id
+        infohash = shopservice.download(Session, mbid, user_id)
+        if infohash:
+            return simplejson.dumps({'success' : True, 'id' : infohash})
+        else:
+            return simplejson.dumps({'success' : False})
+    
+    def checkDownloadStatusAJAX(self):
+        infohash = request.params['id']
+        (isdone, pctdone) = shopservice.getPercentDone(infohash)
+        return simplejson.dumps({'done' : isdone, 'percent' : pctdone})
+    
+    def finishDownloadAJAX(self):
+        infohash = request.params['id']
+        release_mbid = shopservice.loadFinishedTorrent(Session, infohash)
+        return {'mbid' : release_mbid}
     
     def _mapify(self, urls):
         m = {}

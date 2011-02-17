@@ -30,6 +30,7 @@ from scatterbrainz.model.lyricsattempt import LyricsAttempt
 from scatterbrainz.model.artistbio import ArtistBio
 from scatterbrainz.model.albumsummary import AlbumSummary
 from scatterbrainz.model.similarartist import SimilarArtist
+from scatterbrainz.model.shopdownload import ShopDownload
 
 PGUuid = postgres.PGUuid
 

@@ -23,17 +23,16 @@ class Track(Base):
     releasename = Column(u'release_name', Unicode, nullable=False)
     artistcredit = Column(u'artist_credit_name', Unicode, nullable=False)
     
-    def __init__(self, filepath, filesize, filemtime, mp3bitrate,
-                 mp3samplerate, mp3length, release, recording, added):
-        self.filepath = filepath
-        self.filesize = filesize
-        self.filemtime = filemtime
-        self.mp3bitrate = mp3bitrate
-        self.mp3samplerate = mp3samplerate
-        self.mp3length = mp3length
-        self.release = release
-        self.recording = recording
-        self.added = added
+    def __init__(self, id, fileid, mbid, albumid, name, tracknum, discnum, releasename, artistcredit):
+        self.id = id
+        self.fileid = fileid
+        self.mbid = mbid
+        self.albumid = albumid
+        self.name = name
+        self.tracknum = tracknum
+        self.discnum = discnum
+        self.releasename = releasename
+        self.artistcredit = artistcredit
     
     def toPlaylistJSON(self):
         return dict(id = self.id,
