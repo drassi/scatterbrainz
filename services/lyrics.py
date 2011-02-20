@@ -92,14 +92,12 @@ def get_lyrics(Session, track):
                     if lyricsAttempt:
                         lyricsAttempt.tried = now
                         lyricsAttempt.error = None
-                        Session.update(lyricsAttempt)
                     else:
                         Session.add(LyricsAttempt(recording_mbid, now))
             except Exception, e:
                 if lyricsAttempt:
                     lyricsAttempt.tried = now
                     lyricsAttempt.error = e.__repr__()
-                    Session.update(lyricsAttempt)
                 else:
                     Session.add(LyricsAttempt(recording_mbid, now, e.__repr__()))
             Session.commit()

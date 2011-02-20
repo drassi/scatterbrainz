@@ -95,14 +95,12 @@ def get_art(Session, album):
                     if albumArtAttempt:
                         albumArtAttempt.tried = now
                         albumArtAttempt.error = None
-                        Session.update(albumArtAttempt)
                     else:
                         Session.add(AlbumArtAttempt(albumMbid, now))
             except Exception, e:
                 if albumArtAttempt:
                     albumArtAttempt.tried = now
                     albumArtAttempt.error = e.__repr__()
-                    Session.update(albumArtAttempt)
                 else:
                     Session.add(AlbumArtAttempt(albumMbid, now, e.__repr__()))
             Session.commit()
