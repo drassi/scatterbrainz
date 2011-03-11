@@ -18,7 +18,7 @@ from operator import itemgetter, attrgetter
 
 from scatterbrainz.config.config import Config
 
-from scatterbrainz.model import ShopDownload, Album, Artist, Track, AudioFile, artist_albums
+from scatterbrainz.model import ShopDownload, Album, Artist, Track, AudioFile, artist_albums, ShopDownloadAttempt
 from scatterbrainz.model.musicbrainz import *
 
 log = logging.getLogger(__name__)
@@ -33,7 +33,6 @@ loginurl = shopbaseurl + '/login.php'
 searchurl = shopbaseurl + '/torrents.php'
 maybeloggedin = False
 rpcurl = "http://localhost/RPC2"
-loadlock = Lock()
 
 def login():
     authdata = urllib.urlencode({
@@ -53,8 +52,22 @@ Search the shop for the given album.  Return torrent info hash, or None if album
 """
 def download(Session, mbid, owner_id):
     with shoplock:
-        # TODO check for shopdownload and shopdownloadattempt
+        now = datetime.now()
+        existingdownload = Session.query(ShopDownload) \
+                                  .filter(ShopDownload.release_group_mbid==mbid) \
+                                  .first()
+        if existingdownload:
+            return existingdownload.infohash
+        attempt = Session.query(ShopDownloadAttempt) \
+                         .filter(ShopDownloadAttempt.mbid==mbid) \
+                         .first()
+        if attempt and now < attempt.tried + timedelta(days=10):
+            return None
+        if not attempt:
+            attempt = ShopDownloadAttempt(mbid, now, True)
+        attempt.tried = now
         log.info('[shop] searching for ' + mbid)
+        Session.begin()
         if not maybeloggedin:
             login()
         (album, albumname, artistname) = Session.query(MBReleaseGroup, MBReleaseName, MBArtistName) \
@@ -84,8 +97,12 @@ def download(Session, mbid, owner_id):
                 raise Exception('couldnt login!')
         if 'Your search did not match anything' in html:
             log.warn('[shop] no results')
+            attempt.gotsearchresults = False
+            if attempt not in Session:
+                Session.add(attempt)
+            Session.commit()
             return None
-
+        
         # Gather up all tracks from all releases
         results = Session.query(MBTrack, MBArtistName, MBTrackName, MBRelease, MBMedium) \
                          .join(MBTrackList, MBMedium, MBRelease, MBReleaseGroup) \
@@ -174,7 +191,7 @@ def download(Session, mbid, owner_id):
                         avgscore = sumscore * 1.0 / numtracks
                         log.info('match avg=' + str(avgscore) + ' min=' + str(minscore) + ' ' + download['torrentid'] + ' -> ' + releaseid)
                     releasescores.append({'releaseid' : releaseid, 'min' : minscore, 'avg' : avgscore})
-                releasescores = filter(lambda x: x['min'] > 0.6 and x['avg'] > 0.7, releasescores)
+                releasescores = filter(lambda x: x['min'] > 0.3 and x['avg'] > 0.70, releasescores)
                 releasescores.sort(key=itemgetter('avg'), reverse=True)
                 if releasescores:
                     # Toss torrent over to rtorrent via xml-rpc
@@ -193,14 +210,18 @@ def download(Session, mbid, owner_id):
                     file_json = simplejson.dumps(map(itemgetter('original'), filenames))
                     minscore = releasescores[0]['min']
                     avgscore = releasescores[0]['avg']
-                    shopdownload = ShopDownload(releaseid, infohash, torrenturl, torrentpageurl, download['torrentid'], download['seeders'], file_json, minscore, avgscore, owner_id)
-                    Session.begin()
+                    shopdownload = ShopDownload(releaseid, album.gid, infohash, torrenturl, torrentpageurl, download['torrentid'], download['seeders'], file_json, minscore, avgscore, owner_id)
                     Session.add(shopdownload)
+                    if attempt in Session:
+                        Session.delete(attempt)
                     Session.commit()
                     return infohash
-        # TODO insert/update shopdownloadattempt
         log.info('[shop] no matches, sorry :(')
-    return None
+        attempt.gotsearchresults = True
+        if attempt not in Session:
+            Session.add(attempt)
+        Session.commit()
+        return None
 
 """
 Return (isdone, pctdone) of a torrent given its infohash
@@ -224,7 +245,7 @@ def getPercentDone(infohash):
 Import a finished torrent
 """
 def loadFinishedTorrent(Session, infohash):
-    with loadlock:
+    with shoplock:
         Session.begin()
         shopdownload = Session.query(ShopDownload).filter(ShopDownload.infohash==unicode(infohash)).one()
         if shopdownload.isdone:

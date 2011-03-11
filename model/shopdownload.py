@@ -15,6 +15,7 @@ class ShopDownload(Base):
     
     infohash = Column(u'infohash', Unicode(), nullable=False, primary_key=True)
     release_mbid = Column(u'release_mbid', PGUuid(), ForeignKey('release.gid'), nullable=False)
+    release_group_mbid = Column(u'release_group_mbid', PGUuid(), ForeignKey('release_group.gid'), nullable=False)
     torrent_url = Column(u'torrent_url', Unicode(), nullable=False)
     torrent_page_url = Column(u'torrent_page_url', Unicode(), nullable=False)
     torrent_id = Column(u'torrent_id', Unicode(), nullable=False)
@@ -27,8 +28,9 @@ class ShopDownload(Base):
     avgscore = Column(u'avg_score', Float(), nullable=False)
     owner_id = Column(u'owner_id', Integer(), ForeignKey('scatterbrainz_user.user_id'), nullable=False)
 
-    def __init__(self, release_mbid, infohash, torrent_url, torrent_page_url, torrent_id, num_seeders, file_json, minscore, avgscore, owner_id):
+    def __init__(self, release_mbid, release_group_mbid, infohash, torrent_url, torrent_page_url, torrent_id, num_seeders, file_json, minscore, avgscore, owner_id):
         self.release_mbid = release_mbid
+        self.release_group_mbid = release_group_mbid
         self.infohash = unicode(infohash)
         self.torrent_url = unicode(torrent_url)
         self.torrent_page_url = unicode(torrent_page_url)

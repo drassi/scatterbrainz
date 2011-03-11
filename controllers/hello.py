@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 
 import logging
 
+from sqlalchemy import exists
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.functions import random
 from sqlalchemy.orm import contains_eager
@@ -35,6 +36,7 @@ from scatterbrainz.model.track import Track
 from scatterbrainz.model import artist_albums
 from scatterbrainz.model.musicbrainz import *
 from scatterbrainz.model.auth import User
+from scatterbrainz.model import ShopDownload
 
 from scatterbrainz.config.config import Config
 
@@ -619,7 +621,9 @@ class HelloController(BaseController):
                        .join(MBReleaseName) \
                        .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
                        .join(MBReleaseGroupMeta) \
-                       .join(MBReleaseGroupType)
+                       .join(MBReleaseGroupType) \
+                       .filter(~exists().where(MBReleaseGroup.gid==Album.mbid)) \
+                       .filter(~exists().where(MBReleaseGroup.gid==ShopDownload.release_group_mbid))
         limit = 30
         if mbid:
             query = query.filter(MBReleaseGroup.gid==mbid)
@@ -636,13 +640,8 @@ class HelloController(BaseController):
         resultmbids = set()
         for (album, albumname, artistname, rgmeta, rgtype) in results:
             resultmbids.add(album.gid)
-        localmbids = set()
-        for (localmbid,) in Session.query(Album.mbid).filter(Album.mbid.in_(resultmbids)).all():
-            localmbids.add(localmbid)
         albums = []
         for (album, albumname, artistname, rgmeta, rgtype) in results:
-            if album.gid in localmbids:
-                continue
             if rgmeta and rgmeta.year:
                 year = rgmeta.year
             else:
@@ -659,32 +658,63 @@ class HelloController(BaseController):
                 'type'   : rtype
             })
         truncated = len(results) == limit
-        return simplejson.dumps({'albums':albums, 'numlocal':len(localmbids), 'truncated':truncated})
+        return simplejson.dumps({'albums':albums, 'truncated':truncated})
     
     def searchShopAlbumAJAX(self):
         mbid = request.params['mbid']
-        (album, albumname, artistname) = Session.query(MBReleaseGroup, MBReleaseName, MBArtistName) \
+        (album, albumname, artistname) = Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
                                                 .join(MBReleaseName) \
                                                 .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
+                                                .join(MBReleaseGroupMeta) \
+                                                .join(MBReleaseGroupType) \
                                                 .filter(MBReleaseGroup.gid==mbid) \
                                                 .one()
         user_name = request.environ['repoze.what.credentials']['repoze.what.userid']
         user_id = Session.query(User).filter(User.user_name==user_name).one().user_id
         infohash = shopservice.download(Session, mbid, user_id)
         if infohash:
-            return simplejson.dumps({'success' : True, 'id' : infohash})
+            return simplejson.dumps({'success' : True})
         else:
             return simplejson.dumps({'success' : False})
     
-    def checkDownloadStatusAJAX(self):
-        infohash = request.params['id']
-        (isdone, pctdone) = shopservice.getPercentDone(infohash)
-        return simplejson.dumps({'done' : isdone, 'percent' : pctdone})
+    def checkDownloadStatusesAJAX(self):
+        user_name = request.environ['repoze.what.credentials']['repoze.what.userid']
+        user_id = Session.query(User).filter(User.user_name==user_name).one().user_id
+        downloads = Session.query(ShopDownload).filter(ShopDownload.owner_id==user_id).all()
+        json = []
+        for download in downloads:
+            infohash = download.infohash
+            (isdone, pctdone) = shopservice.getPercentDone(infohash)
+            (album, albumname, artistname, rgmeta, rgtype) = \
+                    Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
+                           .join(MBReleaseName) \
+                           .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
+                           .join(MBReleaseGroupMeta) \
+                           .join(MBReleaseGroupType) \
+                           .filter(MBReleaseGroup.gid==download.release_group_mbid) \
+                           .one()
+            if rgmeta and rgmeta.year:
+                year = rgmeta.year
+            else:
+                year = '?'
+            if rgtype and rgtype.name:
+                rtype = rgtype.name
+            else:
+                rtype = 'Unknown'
+            json.append({'id' : infohash,
+                         'done' : isdone,
+                         'percent' : pctdone,
+                         'mbid'   : album.gid,
+                         'album'  : albumname.name,
+                         'artist' : artistname.name,
+                         'year'   : year,
+                         'type'   : rtype})
+        return simplejson.dumps(json)
     
     def finishDownloadAJAX(self):
         infohash = request.params['id']
         release_mbid = shopservice.loadFinishedTorrent(Session, infohash)
-        return {'mbid' : release_mbid}
+        return simplejson.dumps({'mbid' : release_mbid})
     
     def _mapify(self, urls):
         m = {}
