@@ -389,7 +389,8 @@ $(document).ready(function(){
         'nowPlayingNav' : {'selector' : $('#nowPlayingContainer')},
         'artistNav' : {'selector' : $('#artistBrowserContainer')
                      , 'callback' : openArtistNav},
-        'shopNav' : {'selector' : $('#shopContainer')}
+        'shopNav' : {'selector' : $('#shopContainer')
+                    , 'callback' : refreshShopStatus}
     };
     
     $('div#navigation button.screen').click(function() {
@@ -1133,5 +1134,56 @@ function searchForShopAlbum() {
 
 function showShopAlbumSearchResults(data) {
     $('span#shopSearchStatus').hide();
+}
+
+function refreshShopStatus() {
+    if ($('div#shopContainer').is(':visible')) {
+        $.getJSON(
+            '/hello/checkDownloadStatusesAJAX',
+            {},
+            showShopStatuses
+        );
+    }
+}
+
+function showShopStatuses(data) {
+
+console.log('showin');
+
+    var downloads = data['downloads'];
+    
+    $('div#shopDownloading').empty();
+    for (var i=0; i<downloads.length; i++) {
+        var album = downloads[i];
+        var pct = album['percent'] + '%';
+        var e = $('<div>').addClass('artistAlbum')
+                          .append($('<span>').addClass('shopAlbumArtist').text(album['artist']).attr('title', album['artist']))
+                          .append($('<span>').addClass('shopAlbumAlbum').text(album['album']).attr('title', album['album']))
+                          .append($('<span>').addClass('shopAlbumYear').text(album['year']))
+                          .append($('<span>').addClass('shopAlbumType').text(album['type']))
+                          .append($('<span>').addClass('shopAlbumPercent').text(pct))
+                          .append($('<span>').addClass('shopAlbumProgress').width(pct))
+                          .data('mbid', album['mbid']);
+        $('div#shopDownloading').append(e);
+    }
+    
+    var done = data['done'];
+    $('div#shopDone').empty();
+    for (var i=0; i<done.length; i++) {
+        var album = done[i];
+        var buttons = $('<span>').addClass('albumButtons')
+                                 .append($('<span>').addClass('ui-icon ui-icon-play playAlbumButton'))
+                                 .append($('<span>').addClass('ui-icon ui-icon-clock queueAlbumButton'));
+        var e = $('<div>').addClass('artistAlbum').addClass('bold')
+                          .append($('<span>').addClass('shopAlbumArtist').text(album['artist']).attr('title', album['artist']))
+                          .append($('<span>').addClass('shopAlbumAlbum').text(album['album']).attr('title', album['album']))
+                          .append($('<span>').addClass('shopAlbumYear').text(album['year']))
+                          .append($('<span>').addClass('shopAlbumType').text(album['type']))
+                          .append(buttons)
+                          .data('mbid', album['mbid']);
+        $('div#shopDone').append(e);
+    }
+    
+    setTimeout(refreshShopStatus, 10000);
 }
 

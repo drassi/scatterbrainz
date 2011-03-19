@@ -561,6 +561,7 @@ div.artistAlbum {
     border: 1px solid #BFBFBF;
     padding: 2px;
     margin: 2px;
+    position: relative;
 }
 
 div.artistAlbum:hover {
@@ -645,8 +646,44 @@ input#shopSearchArtist, input#shopSearchAlbum {
 }
 
 div#shopSearchResults {
-    width: 50%;
+    width: 58%;
     margin: 10px;
+    height: 90%;
+    overflow: auto;
+}
+
+div#shopDownloading {
+    margin-top: 20px;
+    width: 38%;
+    height: 24%;
+    position: absolute;
+    top: 2%;
+    left: 60%;
+    overflow: auto;
+}
+
+div#shopDone {
+    margin-top: 20px;
+    width: 38%;
+    height: 64%;
+    position: absolute;
+    left: 60%;
+    top: 30%;
+    overflow: auto;
+}
+
+span#shopDownloadingLabel {
+    font-weight: bold;
+    position: absolute;
+    top: 2%;
+    left: 60%;
+}
+
+span#shopDoneLabel {
+    font-weight: bold;
+    position: absolute;
+    left: 60%;
+    top: 30%;
 }
 
 span.shopAlbumArtist {
@@ -663,6 +700,15 @@ span.shopAlbumYear {
 
 span.shopAlbumType {
     width: 15%;
+}
+
+span.shopAlbumProgress {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background-color: #D2E3FF;
+    z-index: -1;
 }
 
 span.shopAlbumSearchLink {

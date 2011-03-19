@@ -5,18 +5,18 @@ import re
 import time
 import urllib
 import string
+import logging
 import random as rand
 import simplejson
 import htmlentitydefs
+from operator import itemgetter, attrgetter
 
 from httplib import BadStatusLine
 from socket import timeout as SocketTimeout
 
 from datetime import datetime, timedelta
 
-import logging
-
-from sqlalchemy import exists
+from sqlalchemy import exists, desc
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql.functions import random
 from sqlalchemy.orm import contains_eager
@@ -662,11 +662,9 @@ class HelloController(BaseController):
     
     def searchShopAlbumAJAX(self):
         mbid = request.params['mbid']
-        (album, albumname, artistname) = Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
+        (album, albumname, artistname) = Session.query(MBReleaseGroup, MBReleaseName, MBArtistName) \
                                                 .join(MBReleaseName) \
                                                 .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
-                                                .join(MBReleaseGroupMeta) \
-                                                .join(MBReleaseGroupType) \
                                                 .filter(MBReleaseGroup.gid==mbid) \
                                                 .one()
         user_name = request.environ['repoze.what.credentials']['repoze.what.userid']
@@ -680,11 +678,15 @@ class HelloController(BaseController):
     def checkDownloadStatusesAJAX(self):
         user_name = request.environ['repoze.what.credentials']['repoze.what.userid']
         user_id = Session.query(User).filter(User.user_name==user_name).one().user_id
-        downloads = Session.query(ShopDownload).filter(ShopDownload.owner_id==user_id).all()
-        json = []
+        # My current un-finished downloads
+        downloads = Session.query(ShopDownload) \
+                           .filter(ShopDownload.owner_id==user_id) \
+                           .filter(ShopDownload.isdone==False) \
+                           .all()
+        downloadjson = []
         for download in downloads:
             infohash = download.infohash
-            (isdone, pctdone) = shopservice.getPercentDone(infohash)
+            pctdone = shopservice.getPercentDone(infohash)
             (album, albumname, artistname, rgmeta, rgtype) = \
                     Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
                            .join(MBReleaseName) \
@@ -701,14 +703,43 @@ class HelloController(BaseController):
                 rtype = rgtype.name
             else:
                 rtype = 'Unknown'
-            json.append({'id' : infohash,
-                         'done' : isdone,
-                         'percent' : pctdone,
-                         'mbid'   : album.gid,
-                         'album'  : albumname.name,
-                         'artist' : artistname.name,
-                         'year'   : year,
-                         'type'   : rtype})
+            downloadjson.append({'percent' : pctdone,
+                                 'mbid'   : album.gid,
+                                 'album'  : albumname.name,
+                                 'artist' : artistname.name,
+                                 'year'   : year,
+                                 'type'   : rtype})
+        downloadjson.sort(key=itemgetter('percent'))
+        # Everyone's recently finished downloads
+        finished = Session.query(ShopDownload) \
+                          .filter(ShopDownload.isdone==True) \
+                          .filter(ShopDownload.finished > datetime.now() - timedelta(days=7)) \
+                          .order_by(desc(ShopDownload.finished)) \
+                          .all()
+        donejson = []
+        for download in finished:
+            (album, albumname, artistname, rgmeta, rgtype) = \
+                    Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
+                           .join(MBReleaseName) \
+                           .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
+                           .join(MBReleaseGroupMeta) \
+                           .join(MBReleaseGroupType) \
+                           .filter(MBReleaseGroup.gid==download.release_group_mbid) \
+                           .one()
+            if rgmeta and rgmeta.year:
+                year = rgmeta.year
+            else:
+                year = '?'
+            if rgtype and rgtype.name:
+                rtype = rgtype.name
+            else:
+                rtype = 'Unknown'
+            donejson.append({'mbid'   : album.gid,
+                             'album'  : albumname.name,
+                             'artist' : artistname.name,
+                             'year'   : year,
+                             'type'   : rtype})
+        json = {'downloads' : downloadjson, 'done' : donejson}
         return simplejson.dumps(json)
     
     def finishDownloadAJAX(self):
