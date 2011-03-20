@@ -326,7 +326,8 @@ class LoadFinishedThread(threading.Thread):
                     if relpath.startswith('./'):
                         relpath = relpath[2:]
                     normalizedfilename = filter(str.isalnum, relpath.lower())
-                    assert normalizedfilename in promisedfilemap
+                    if normalizedfilename not in promisedfilemap:
+                        continue
                     track = promisedfilemap[normalizedfilename]
                     filepath = dirpath + '/' + release_mbid + '-' + track.mbid + '.mp3'
                     os.link(abspath, Config.MUSIC_PATH + filepath)
