@@ -12,7 +12,7 @@ import threading
 import simplejson
 import lxml.html as lxml
 from mutagen.mp3 import MP3
-from datetime import datetime
+from datetime import datetime, timedelta
 from multiprocessing import Lock
 from difflib import SequenceMatcher
 from operator import itemgetter, attrgetter

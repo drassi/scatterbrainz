@@ -1082,18 +1082,25 @@ function queueAlbumHandler() {
 
 function searchAlbumHandler() {
     var artist = $('#artistBrowserArtistHeader').text();
-    var album = $(this).parent().parent().children('.albumTitle').text();
-    var url = 'https://ssl.what.cd/torrents.php?'
-            + 'artistname=' + encodeURIComponent(artist) + '&'
-            + 'groupname=' + encodeURIComponent(album) + '&'
-            + 'action=advanced&'
-            + 'format=MP3&'
-            + 'order_by=seeders';
-    window.open(url, '_newtab');
+    var albumname = $(this).parents('.artistAlbum').children('.albumTitle').text();
+    var year = $(this).parents('.artistAlbum').children('.albumYear2').text();
+    var type = $(this).parents('.artistAlbum').children('.albumType').text();
+    var mbid = $(this).parents('.artistAlbum').data('mbid');
+    var album = {'artist' : artist, 'album' : albumname, 'year' : year, 'type' : type, 'mbid' : mbid};
+    var e = $('<div>').addClass('artistAlbum')
+                      .append($('<span>').addClass('shopAlbumArtist').text(album['artist']).attr('title', album['artist']))
+                      .append($('<span>').addClass('shopAlbumAlbum').text(album['album']).attr('title', album['album']))
+                      .append($('<span>').addClass('shopAlbumYear').text(album['year']))
+                      .append($('<span>').addClass('shopAlbumType').text(album['type']))
+                      .append($('<span>').addClass('shopAlbumSearchLink').text('Search').data('mbid', album['mbid']));
+    $('div#shopSearchResults').empty();
+    $('div#shopSearchResults').append(e);
+    $('div#shopSearchResults').find('span.shopAlbumSearchLink:first').click();
+    switchWindow($('button#shopNav'), true);
 }
 
 function shopSearchSubmit() {
-    $('span#shopSearchStatus').show();
+    $('span#shopSearchStatus').text('Searching...');
     $.getJSON(
         '/hello/searchShopAJAX',
         {'artist': $('input#shopSearchArtist').attr('value'),
@@ -1119,11 +1126,11 @@ function showShopSearchResults(data) {
                           .append($('<span>').addClass('shopAlbumSearchLink').text('Search').data('mbid', album['mbid']));
         $('div#shopSearchResults').append(e);
     }
-    $('span#shopSearchStatus').hide();
+    $('span#shopSearchStatus').text('');
 }
 
 function searchForShopAlbum() {
-    $('span#shopSearchStatus').show();
+    $('span#shopSearchStatus').text('Searching...');
     var mbid = $(this).data('mbid');
     $.getJSON(
         '/hello/searchShopAlbumAJAX',
@@ -1133,7 +1140,14 @@ function searchForShopAlbum() {
 }
 
 function showShopAlbumSearchResults(data) {
-    $('span#shopSearchStatus').hide();
+    if (data['success']) {
+        $('span#shopSearchStatus').text('Success!');
+    } else {
+        $('span#shopSearchStatus').text('Not found, sorry.');
+    }
+    setTimeout(function() {
+        $('span#shopSearchStatus').text('');
+    }, 2000);
 }
 
 function refreshShopStatus() {
@@ -1147,8 +1161,6 @@ function refreshShopStatus() {
 }
 
 function showShopStatuses(data) {
-
-console.log('showin');
 
     var downloads = data['downloads'];
     

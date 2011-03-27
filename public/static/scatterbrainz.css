@@ -655,7 +655,7 @@ div#shopSearchResults {
 div#shopDownloading {
     margin-top: 20px;
     width: 38%;
-    height: 24%;
+    height: 18%;
     position: absolute;
     top: 2%;
     left: 60%;
@@ -665,10 +665,10 @@ div#shopDownloading {
 div#shopDone {
     margin-top: 20px;
     width: 38%;
-    height: 64%;
+    height: 70%;
     position: absolute;
     left: 60%;
-    top: 30%;
+    top: 24%;
     overflow: auto;
 }
 
@@ -683,7 +683,7 @@ span#shopDoneLabel {
     font-weight: bold;
     position: absolute;
     left: 60%;
-    top: 30%;
+    top: 24%;
 }
 
 span.shopAlbumArtist {
