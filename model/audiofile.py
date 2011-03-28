@@ -33,30 +33,20 @@ class AudioFile(Base):
     mp3samplerate = Column(Integer, nullable=False)
     mp3length = Column(Integer, nullable=False)
     
-    # Lyrics
-    lyrics = Column(Unicode)
-    lastHitLyricWiki = Column(DateTime)
-    
     # Meta props
     added = Column(DateTime, nullable=False)
 
-    def __init__(self, filepath, filesize, filemtime, mp3bitrate,
-                 mp3samplerate, mp3length, release, recording, added):
+    def __init__(self, releasembid, recordingmbid, filepath, filesize, filemtime, mp3bitrate,
+                 mp3samplerate, mp3length, added):
+        self.releasembid = releasembid
+        self.recordingmbid = recordingmbid
         self.filepath = filepath
         self.filesize = filesize
         self.filemtime = filemtime
         self.mp3bitrate = mp3bitrate
         self.mp3samplerate = mp3samplerate
         self.mp3length = mp3length
-        self.release = release
-        self.recording = recording
         self.added = added
-    
-    def getTrackNum(self):
-        if self.id3tracknum:
-            return int(self.id3tracknum.split('/')[0])
-        else:
-            return None
     
     def toPlaylistJSON(self):
         return dict(id = self.id,
@@ -70,16 +60,6 @@ class AudioFile(Base):
                     bitrate = r.bitrate(self),
                     length = r.length(self))
     
-    def toTreeJSON(self):
-        json = {
-                'attributes': {'id'   : self.__class__.__name__ + '_' + str(self.id),
-                               'class': 'browsenode',
-                               'rel'  : self.__class__.__name__
-                              },
-                'data': self.id3title or "&nbsp;" # jstree bug triggers on null or ""
-               }
-        return json
-
     def __repr__(self):
         return "<Track%s>" % (self.__dict__)
 

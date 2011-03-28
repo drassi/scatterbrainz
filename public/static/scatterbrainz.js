@@ -377,6 +377,9 @@ $(document).ready(function(){
         );
     }
     
+    /** Shop **/
+    $('form#shopSearchForm').submit(shopSearchSubmit);
+    
     if (window.location.hash == "#scrobble") {
         alert('scrobbling..');
     }
@@ -385,7 +388,9 @@ $(document).ready(function(){
         'playlistNav' : {'selector' : $('.browsePane, #browsePaneSplitter')},
         'nowPlayingNav' : {'selector' : $('#nowPlayingContainer')},
         'artistNav' : {'selector' : $('#artistBrowserContainer')
-                     , 'callback' : openArtistNav}
+                     , 'callback' : openArtistNav},
+        'shopNav' : {'selector' : $('#shopContainer')
+                    , 'callback' : refreshShopStatus}
     };
     
     $('div#navigation button.screen').click(function() {
@@ -408,6 +413,8 @@ $(document).ready(function(){
     $('.playAlbumButton').live('click', playAlbumHandler);
     $('.queueAlbumButton').live('click', queueAlbumHandler);
     $('.searchAlbumButton').live('click', searchAlbumHandler);
+    
+    $('span.shopAlbumSearchLink').live('click', searchForShopAlbum);
 });
 
 function switchWindow(self, runCallback) {
@@ -1075,13 +1082,120 @@ function queueAlbumHandler() {
 
 function searchAlbumHandler() {
     var artist = $('#artistBrowserArtistHeader').text();
-    var album = $(this).parent().parent().children('.albumTitle').text();
-    var url = 'https://ssl.what.cd/torrents.php?'
-            + 'artistname=' + encodeURIComponent(artist) + '&'
-            + 'groupname=' + encodeURIComponent(album) + '&'
-            + 'action=advanced&'
-            + 'format=MP3&'
-            + 'order_by=seeders';
-    window.open(url, '_newtab');
+    var albumname = $(this).parents('.artistAlbum').children('.albumTitle').text();
+    var year = $(this).parents('.artistAlbum').children('.albumYear2').text();
+    var type = $(this).parents('.artistAlbum').children('.albumType').text();
+    var mbid = $(this).parents('.artistAlbum').data('mbid');
+    var album = {'artist' : artist, 'album' : albumname, 'year' : year, 'type' : type, 'mbid' : mbid};
+    var e = $('<div>').addClass('artistAlbum')
+                      .append($('<span>').addClass('shopAlbumArtist').text(album['artist']).attr('title', album['artist']))
+                      .append($('<span>').addClass('shopAlbumAlbum').text(album['album']).attr('title', album['album']))
+                      .append($('<span>').addClass('shopAlbumYear').text(album['year']))
+                      .append($('<span>').addClass('shopAlbumType').text(album['type']))
+                      .append($('<span>').addClass('shopAlbumSearchLink').text('Search').data('mbid', album['mbid']));
+    $('div#shopSearchResults').empty();
+    $('div#shopSearchResults').append(e);
+    $('div#shopSearchResults').find('span.shopAlbumSearchLink:first').click();
+    switchWindow($('button#shopNav'), true);
+}
+
+function shopSearchSubmit() {
+    $('span#shopSearchStatus').text('Searching...');
+    $.getJSON(
+        '/hello/searchShopAJAX',
+        {'artist': $('input#shopSearchArtist').attr('value'),
+         'album': $('input#shopSearchAlbum').attr('value'),
+         'mbid' : ''},
+        showShopSearchResults
+    );
+    return false;
+}
+
+function showShopSearchResults(data) {
+    var numlocal = data['numlocal'];
+    var truncated = data['truncated'];
+    var albums = data['albums'];
+    $('div#shopSearchResults').empty();
+    for (var i=0; i<albums.length; i++) {
+        var album = albums[i];
+        var e = $('<div>').addClass('artistAlbum')
+                          .append($('<span>').addClass('shopAlbumArtist').text(album['artist']).attr('title', album['artist']))
+                          .append($('<span>').addClass('shopAlbumAlbum').text(album['album']).attr('title', album['album']))
+                          .append($('<span>').addClass('shopAlbumYear').text(album['year']))
+                          .append($('<span>').addClass('shopAlbumType').text(album['type']))
+                          .append($('<span>').addClass('shopAlbumSearchLink').text('Search').data('mbid', album['mbid']));
+        $('div#shopSearchResults').append(e);
+    }
+    $('span#shopSearchStatus').text('');
+}
+
+function searchForShopAlbum() {
+    $('span#shopSearchStatus').text('Searching...');
+    var mbid = $(this).data('mbid');
+    $.getJSON(
+        '/hello/searchShopAlbumAJAX',
+        {'mbid' : mbid},
+        showShopAlbumSearchResults
+    );
+}
+
+function showShopAlbumSearchResults(data) {
+    if (data['success']) {
+        $('span#shopSearchStatus').text('Success!');
+    } else {
+        $('span#shopSearchStatus').text('Not found, sorry.');
+    }
+    setTimeout(function() {
+        $('span#shopSearchStatus').text('');
+    }, 2000);
+}
+
+function refreshShopStatus() {
+    if ($('div#shopContainer').is(':visible')) {
+        $.getJSON(
+            '/hello/checkDownloadStatusesAJAX',
+            {},
+            showShopStatuses
+        );
+    }
+}
+
+function showShopStatuses(data) {
+
+    var downloads = data['downloads'];
+    
+    $('div#shopDownloading').empty();
+    for (var i=0; i<downloads.length; i++) {
+        var album = downloads[i];
+        var pct = album['percent'] + '%';
+        var e = $('<div>').addClass('artistAlbum')
+                          .append($('<span>').addClass('shopAlbumArtist').text(album['artist']).attr('title', album['artist']))
+                          .append($('<span>').addClass('shopAlbumAlbum').text(album['album']).attr('title', album['album']))
+                          .append($('<span>').addClass('shopAlbumYear').text(album['year']))
+                          .append($('<span>').addClass('shopAlbumType').text(album['type']))
+                          .append($('<span>').addClass('shopAlbumPercent').text(pct))
+                          .append($('<span>').addClass('shopAlbumProgress').width(pct))
+                          .data('mbid', album['mbid']);
+        $('div#shopDownloading').append(e);
+    }
+    
+    var done = data['done'];
+    $('div#shopDone').empty();
+    for (var i=0; i<done.length; i++) {
+        var album = done[i];
+        var buttons = $('<span>').addClass('albumButtons')
+                                 .append($('<span>').addClass('ui-icon ui-icon-play playAlbumButton'))
+                                 .append($('<span>').addClass('ui-icon ui-icon-clock queueAlbumButton'));
+        var e = $('<div>').addClass('artistAlbum').addClass('bold')
+                          .append($('<span>').addClass('shopAlbumArtist').text(album['artist']).attr('title', album['artist']))
+                          .append($('<span>').addClass('shopAlbumAlbum').text(album['album']).attr('title', album['album']))
+                          .append($('<span>').addClass('shopAlbumYear').text(album['year']))
+                          .append($('<span>').addClass('shopAlbumType').text(album['type']))
+                          .append(buttons)
+                          .data('mbid', album['mbid']);
+        $('div#shopDone').append(e);
+    }
+    
+    setTimeout(refreshShopStatus, 10000);
 }
 

@@ -51,3 +51,31 @@ cd ../admin/sql
 psql -d musicbrainz -f CreateSearchConfiguration.sql
 psql -U musicbrainz -f CreateSearchIndexes.sql
 
+rtorrent:
+
+sudo apt-get install g++ libsigc++-2.0-dev libncurses5-dev libcurl4-openssl-dev subversion
+wget http://libtorrent.rakshasa.no/downloads/libtorrent-0.12.6.tar.gz
+wget http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.6.tar.gz
+svn co http://xmlrpc-c.svn.sourceforge.net/svnroot/xmlrpc-c/advanced xmlrpc-c
+tar xzfv libtorrent-0.12.6.tar.gz
+tar xzfv rtorrent-0.8.6.tar.gz
+cd libtorrent-0.12.6
+./configure
+make
+sudo make install
+cd ../xmlrpc-c
+./configure
+make
+sudo make install
+cd ../rtorrent-0.8.6/
+./configure --with-xmlrpc-c=/usr/local/bin/xmlrpc-c-config
+make
+sudo make install
+
+If you get an error like: libxmlrpc.so.3 not found then add the line: /usr/local/lib to the file /etc/ld.so.conf, and run sudo ldconfig.
+
+sudo apt-get install apache2
+sudo apt-get install libapache2-mod-scgi
+sudo a2enmod scgi
+sudo /etc/init.d/apache2 restart
+
