@@ -1,5 +1,6 @@
 import os
 import re
+import pipes
 import urllib
 import urllib2
 import difflib
@@ -35,7 +36,6 @@ shopbaseurl = Config.SHOP_URL
 loginurl = shopbaseurl + '/login.php'
 searchurl = shopbaseurl + '/torrents.php'
 maybeloggedin = False
-rpcurl = "http://localhost/RPC2"
 
 def login():
     authdata = urllib.urlencode({
@@ -206,7 +206,7 @@ def download(Session, mbid, owner_id):
                     with tempfile.NamedTemporaryFile(delete=False) as torrentfile:
                         torrentpath = torrentfile.name
                         torrentfile.write(torrentdata)
-                    rtorrent = xmlrpclib.ServerProxy(rpcurl)
+                    rtorrent = xmlrpclib.ServerProxy(Config.SHOP_RPC_URL)
                     rtorrent.load_start(torrentpath, "execute=rm," + torrentpath)
                     log.info('[shop] downloaded ' + torrenturl + ' has ' + str(download['seeders']) +
                              ' seeders, infohash=' + infohash + ', match to album ' + releaseid)
@@ -230,7 +230,7 @@ def download(Session, mbid, owner_id):
 Return (isdone, pctdone) of a torrent given its infohash
 """
 def getPercentDone(infohash):
-    rtorrent = xmlrpclib.ServerProxy(rpcurl)
+    rtorrent = xmlrpclib.ServerProxy(Config.SHOP_RPC_URL)
     try:
         iscomplete = rtorrent.d.get_complete(infohash) == 1
         if iscomplete:
@@ -261,7 +261,7 @@ class LoadFinishedThread(threading.Thread):
             if shopdownload.isdone:
                 return
             promisedfiles = simplejson.loads(shopdownload.file_json)
-            rtorrent = xmlrpclib.ServerProxy(rpcurl)
+            rtorrent = xmlrpclib.ServerProxy(Config.SHOP_RPC_URL)
             assert rtorrent.d.get_complete(self.infohash) == 1
             release_mbid = shopdownload.release_mbid
             mbalbum = Session.query(MBReleaseGroup) \
@@ -319,13 +319,23 @@ class LoadFinishedThread(threading.Thread):
             dirpath = album.mbid[:2] + '/' + album.mbid
             os.mkdir(Config.MUSIC_PATH + dirpath)
             torrentdir = rtorrent.d.get_base_path(self.infohash)
+            # scp stuff over if necessary
+            if Config.SCP_SHOP_DOWNLOADS:
+                remote_dir = pipes.quote(pipes.quote(torrentdir)) # this is awesome
+                local_dir = Config.SCP_FOLDER + '/' + self.infohash
+                cmd = Config.SCP_CMD + ':' + remote_dir + ' ' + local_dir
+                log.info('running ' + cmd)
+                retval = os.system(cmd)
+                if retval != 0:
+                    raise Exception('scp command [' + cmd + '] returned ' + str(retval))
+                torrentdir = local_dir
             for root, dirs, actualfiles in os.walk(torrentdir):
                 for f in actualfiles:
                     abspath = os.path.join(root, f)
                     relpath = os.path.join(os.path.relpath(root, torrentdir), f)
                     if relpath.startswith('./'):
                         relpath = relpath[2:]
-                    normalizedfilename = filter(str.isalnum, relpath.lower())
+                    normalizedfilename = filter(str.isalnum, str(relpath.lower()))
                     if normalizedfilename not in promisedfilemap:
                         continue
                     track = promisedfilemap[normalizedfilename]
