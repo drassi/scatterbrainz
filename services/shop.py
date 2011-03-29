@@ -297,7 +297,7 @@ class LoadFinishedThread(threading.Thread):
             albumname = mbalbum.name.name
             artistname = mbalbum.artistcredit.name.name
             albummeta = mbalbum.meta[0]
-            album = Album(mbalbum.gid, albumname, artistname, albummeta.year, albummeta.month, albummeta.day, artistname + ' ' + albumname)
+            album = Album(unicode(mbalbum.gid), unicode(albumname), unicode(artistname), albummeta.year, albummeta.month, albummeta.day, unicode(artistname + ' ' + albumname))
             album.artists = artists
             Session.add(album)
             # Build up mapping of promised filename -> (Track)
@@ -311,7 +311,7 @@ class LoadFinishedThread(threading.Thread):
             for (track, medium, recording, name) in results:
                 stableid = hashlib.md5(release_mbid + '_' + recording.gid +
                                        '_' + str(track.position) + '_' + str(medium.position)).hexdigest()
-                track = Track(stableid, None, recording.gid, mbalbum.gid, name.name, track.position, medium.position, albumname, artistname)
+                track = Track(unicode(stableid), None, recording.gid, mbalbum.gid, unicode(name.name), track.position, medium.position, albumname, artistname)
                 tracks.append(track)
                 Session.add(track)
             tracks.sort(key=attrgetter('discnum'))
@@ -358,7 +358,7 @@ class LoadFinishedThread(threading.Thread):
                     mp3bitrate = info.bitrate
                     mp3samplerate = info.sample_rate
                     mp3length = int(round(info.length))
-                    audiofile = AudioFile(release_mbid, track.mbid, filepath, filesize, filemtime, mp3bitrate,
+                    audiofile = AudioFile(release_mbid, track.mbid, unicode(filepath), filesize, filemtime, mp3bitrate,
                                           mp3samplerate, mp3length, now)
                     track.file = audiofile
                     trackfiles.append({'track' : track, 'file' : audiofile, 'path' : abspath})
