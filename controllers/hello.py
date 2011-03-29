@@ -677,11 +677,8 @@ class HelloController(BaseController):
             return simplejson.dumps({'success' : False})
     
     def checkDownloadStatusesAJAX(self):
-        user_name = request.environ['repoze.what.credentials']['repoze.what.userid']
-        user_id = Session.query(User).filter(User.user_name==user_name).one().user_id
-        # My current un-finished downloads
+        # All current un-finished downloads
         downloads = Session.query(ShopDownload) \
-                           .filter(ShopDownload.owner_id==user_id) \
                            .filter(ShopDownload.isdone==False) \
                            .all()
         downloadjson = []

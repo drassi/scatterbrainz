@@ -206,6 +206,16 @@ def download(Session, mbid, owner_id):
                     with tempfile.NamedTemporaryFile(delete=False) as torrentfile:
                         torrentpath = torrentfile.name
                         torrentfile.write(torrentdata)
+                    # scp torrent over if necessary
+                    if Config.SCP_SHOP_DOWNLOADS:
+                        remotetorrentpath = '/tmp/' + infohash + '.torrent'
+                        cmd = Config.SCP_CMD + ' ' + torrentpath + ' ' + Config.SCP_REMOTE + ':' + remotetorrentpath
+                        log.info('running ' + cmd)
+                        retval = os.system(cmd)
+                        os.unlink(torrentpath)
+                        if retval != 0:
+                            raise Exception('scp command [' + cmd + '] returned ' + str(retval))
+                        torrentpath = remotetorrentpath
                     rtorrent = xmlrpclib.ServerProxy(Config.SHOP_RPC_URL)
                     rtorrent.load_start(torrentpath, "execute=rm," + torrentpath)
                     log.info('[shop] downloaded ' + torrenturl + ' has ' + str(download['seeders']) +
@@ -319,11 +329,11 @@ class LoadFinishedThread(threading.Thread):
             dirpath = album.mbid[:2] + '/' + album.mbid
             os.mkdir(Config.MUSIC_PATH + dirpath)
             torrentdir = rtorrent.d.get_base_path(self.infohash)
-            # scp stuff over if necessary
+            # scp stuff back if necessary
             if Config.SCP_SHOP_DOWNLOADS:
                 remote_dir = pipes.quote(pipes.quote(torrentdir)) # this is awesome
                 local_dir = Config.SCP_FOLDER + '/' + self.infohash
-                cmd = Config.SCP_CMD + ':' + remote_dir + ' ' + local_dir
+                cmd = Config.SCP_CMD + ' ' + Config.SCP_REMOTE + ':' + remote_dir + ' ' + local_dir
                 log.info('running ' + cmd)
                 retval = os.system(cmd)
                 if retval != 0:
