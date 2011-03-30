@@ -270,6 +270,7 @@ class LoadFinishedThread(threading.Thread):
             shopdownload = Session.query(ShopDownload).filter(ShopDownload.infohash==unicode(self.infohash)).one()
             if shopdownload.isdone:
                 return
+            log.info('[shop] starting to import ' + self.infohash)
             promisedfiles = simplejson.loads(shopdownload.file_json)
             rtorrent = xmlrpclib.ServerProxy(Config.SHOP_RPC_URL)
             assert rtorrent.d.get_complete(self.infohash) == 1
@@ -299,7 +300,6 @@ class LoadFinishedThread(threading.Thread):
             albummeta = mbalbum.meta[0]
             album = Album(unicode(mbalbum.gid), unicode(albumname), unicode(artistname), albummeta.year, albummeta.month, albummeta.day, unicode(artistname + ' ' + albumname))
             album.artists = artists
-            Session.add(album)
             # Build up mapping of promised filename -> (Track)
             results = Session.query(MBTrack, MBMedium, MBRecording, MBTrackName) \
                              .join(MBTrackList, MBMedium, MBRelease) \
@@ -334,7 +334,7 @@ class LoadFinishedThread(threading.Thread):
                 remote_dir = pipes.quote(pipes.quote(torrentdir)) # this is awesome
                 local_dir = Config.SCP_FOLDER + '/' + self.infohash
                 cmd = Config.SCP_CMD + ' ' + Config.SCP_REMOTE + ':' + remote_dir + ' ' + local_dir
-                log.info('running ' + cmd)
+                log.info('[shop] running ' + cmd)
                 retval = os.system(cmd)
                 if retval != 0:
                     raise Exception('scp command [' + cmd + '] returned ' + str(retval))
@@ -363,8 +363,10 @@ class LoadFinishedThread(threading.Thread):
                     track.file = audiofile
                     trackfiles.append({'track' : track, 'file' : audiofile, 'path' : abspath})
                     Session.add(audiofile)
+            Session.add(album)
             assert len(trackfiles) == len(tracks) == len(promisedfilemap)
             shopdownload.isdone = True
             shopdownload.finished = datetime.now()
             Session.commit()
+            log.info('[shop] done importing ' + self.infohash)
 
