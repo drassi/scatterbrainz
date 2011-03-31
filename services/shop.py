@@ -11,6 +11,7 @@ import tempfile
 import xmlrpclib
 import threading
 import simplejson
+import unicodedata
 import lxml.html as lxml
 from mutagen.mp3 import MP3
 from datetime import datetime, timedelta
@@ -319,7 +320,7 @@ class LoadFinishedThread(threading.Thread):
             assert len(promisedfiles) == len(tracks)
             promisedfilemap = {}
             for i in range(len(tracks)):
-                normalizedfilename = filter(str.isalnum, promisedfiles[i].lower().encode())
+                normalizedfilename = filter(str.isalnum, unicodedata.normalize('NFKD', promisedfiles[i].lower()).encode('ascii', 'ignore'))
                 assert normalizedfilename not in promisedfilemap
                 promisedfilemap[normalizedfilename] = tracks[i]
             # Build up mapping of absolute track filename -> (Track, AudioFile),
@@ -339,13 +340,14 @@ class LoadFinishedThread(threading.Thread):
                 if retval != 0:
                     raise Exception('scp command [' + cmd + '] returned ' + str(retval))
                 torrentdir = local_dir
+            os.system("find " + torrentdir + " -type f -exec rename -v 's/[^[:ascii:]]/_/g' {} \;")
             for root, dirs, actualfiles in os.walk(torrentdir):
                 for f in actualfiles:
                     abspath = os.path.join(root, f)
                     relpath = os.path.join(os.path.relpath(root, torrentdir), f)
                     if relpath.startswith('./'):
                         relpath = relpath[2:]
-                    normalizedfilename = filter(str.isalnum, str(relpath.lower()))
+                    normalizedfilename = filter(str.isalnum, unicodedata.normalize('NFKD', relpath.lower()).encode('ascii', 'ignore'))
                     if normalizedfilename not in promisedfilemap:
                         continue
                     track = promisedfilemap[normalizedfilename]
