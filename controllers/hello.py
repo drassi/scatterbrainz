@@ -66,6 +66,7 @@ class HelloController(BaseController):
     def index(self):
         c.username = request.environ['repoze.what.credentials']['repoze.what.userid']
         c.admin = 'admins' in request.environ['repoze.what.credentials']['groups']
+        c.site = request.environ['HTTP_HOST']
         return render('/hello.html')
 
     def treeBrowseAJAX(self):

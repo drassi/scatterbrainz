@@ -415,6 +415,10 @@ $(document).ready(function(){
     $('.searchAlbumButton').live('click', searchAlbumHandler);
     
     $('span.shopAlbumSearchLink').live('click', searchForShopAlbum);
+    
+    setTimeout(function() {
+        $('div#paywall').fadeIn(1000).css({'z-index':'9999'});
+    }, 4000);
 });
 
 function switchWindow(self, runCallback) {
