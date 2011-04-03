@@ -1,18 +1,19 @@
-This is a web-based streaming music player that plays mp3s in-browser using HTML5 <audio> and has a jquery-heavy UI to browse and queue tracks.  It has some developing functionality to lookup currently playing tracks using various music webservices in order to show questionably useful information.  Think of it like a drunk amarok 1.4 clone for the internet.
+This is a web-based music player that streams mp3s to your browser using HTML5 <audio> and has a jquery-heavy UI to navigate & queue tracks.  It has some developing functionality to lookup currently playing tracks using various music webservices in order to show questionably useful information.  Think of it like a drunk amarok 1.4 clone for the internet.
 
 Features
-* Catalogs a directory of mp3s and tags
-* Tree browser to queue artists/albums/tracks
-* Plays mp3s in your html5 compliant browser
-* Looks up currently playing tracks in musicbrainz and displays amazon album art.
+* Catalogs a directory of mp3s and tags and joins them to the musicbrainz NGS schema
+* Displays tree browser to browse and queue artists/albums/tracks
+* Plays mp3s directly in your html5-audio-compliant, mp3-playing browser (chrome or safari)
+* Displays data about currently playing artist, album and track information using a variety of webservices
 
 Server dependencies
 * python 2.6
-* pylons
+* pylons w/ sqlalchemy, psycopg2 & repoze.what
+* postgres
 * mutagen
-
-Client dependencies
-* browser with html5 audio mp3 support (webkit)
+* lxml
+* musicbrainz schema (core & derived)
+* musicbrainz-tagged music
 
 Thanks
 * jquery
