@@ -31,8 +31,10 @@ class ShopWorkerThread(threading.Thread):
                                 shopservice.importDownload(download)
                         except Exception as e:
                             log.error('[shop worker] caught exception! [' + e.__repr__() + ']')
+                            Session.rollback()
             except Exception as e:
                 log.error('[shop worker] caught exception! [' + e.__repr__() + ']')
+                Session.rollback()
             if pendingdownloads:
                 time.sleep(10)
             else:
