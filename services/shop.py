@@ -325,10 +325,10 @@ def importDownload(shopdownload):
             local_dir = Config.SCP_FOLDER + '/' + shopdownload.infohash
             cmd = Config.SCP_CMD + ' ' + Config.SCP_REMOTE + ':' + remote_dir + ' ' + local_dir
             log.info('[shop] running ' + cmd)
-            then = time.time()
+            scpstart = time.time()
             retval = os.system(cmd)
-            now = time.time()
-            elapsed = int(round(now-then))
+            scpend = time.time()
+            elapsed = int(round(scpend-scpstart))
             log.info('[shop] scp of ' + shopdownload.infohash + ' done, took ' + str(elapsed) + ' seconds')
             if retval != 0:
                 raise Exception('scp command [' + cmd + '] returned ' + str(retval))
