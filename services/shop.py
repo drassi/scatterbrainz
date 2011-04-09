@@ -33,12 +33,14 @@ opener = urllib2.build_opener(cookies)
 agent = "Mozilla/5.0 (X11; U; Linux x86_64; en-US) AppleWebKit/534.13 (KHTML, like Gecko) Chrome/9.0.597.84 Safari/534.13"
 opener.addheaders = [('User-agent', agent)]
 shoplock = Lock()
+importlock = Lock()
 shopbaseurl = Config.SHOP_URL
 loginurl = shopbaseurl + '/login.php'
 searchurl = shopbaseurl + '/torrents.php'
 maybeloggedin = False
 
 def login():
+    global maybeloggedin
     authdata = urllib.urlencode({
         'username'   : Config.SHOP_USER,
         'password'   : Config.SHOP_PASSWORD,
@@ -193,7 +195,7 @@ def download(Session, mbid, owner_id):
                                 minscore = score
                                 minscoreidx = i
                         avgscore = sumscore * 1.0 / numtracks
-                        log.info('match avg=' + str(avgscore) + ' min=' + str(minscore) + ' ' + download['torrentid'] + ' -> ' + releaseid)
+                        log.info('[shop] match avg=' + str(avgscore) + ' min=' + str(minscore) + ' ' + download['torrentid'] + ' -> ' + releaseid)
                     releasescores.append({'releaseid' : releaseid, 'min' : minscore, 'avg' : avgscore})
                 releasescores = filter(lambda x: x['min'] > 0.3 and x['avg'] > 0.70, releasescores)
                 releasescores.sort(key=itemgetter('avg'), reverse=True)
@@ -211,7 +213,7 @@ def download(Session, mbid, owner_id):
                     if Config.SCP_SHOP_DOWNLOADS:
                         remotetorrentpath = '/tmp/' + infohash + '.torrent'
                         cmd = Config.SCP_CMD + ' ' + torrentpath + ' ' + Config.SCP_REMOTE + ':' + remotetorrentpath
-                        log.info('running ' + cmd)
+                        log.info('[shop] running ' + cmd)
                         retval = os.system(cmd)
                         os.unlink(torrentpath)
                         if retval != 0:
@@ -243,13 +245,7 @@ Return (isdone, pctdone) of a torrent given its infohash
 def getPercentDone(infohash):
     rtorrent = xmlrpclib.ServerProxy(Config.SHOP_RPC_URL)
     try:
-        iscomplete = rtorrent.d.get_complete(infohash) == 1
-        if iscomplete:
-            LoadFinishedThread(infohash).start()
-            return 100
-        else:
-            pct = rtorrent.d.get_bytes_done(infohash) * 100 / rtorrent.d.get_size_bytes(infohash)
-            return pct
+        return rtorrent.d.get_bytes_done(infohash) * 100 / rtorrent.d.get_size_bytes(infohash)
     except xmlrpclib.Fault as e:
         if e.faultString == 'Could not find info-hash.':
             return 0
@@ -259,116 +255,108 @@ def getPercentDone(infohash):
 """
 Import a finished torrent
 """
-class LoadFinishedThread(threading.Thread):
-    
-    def __init__(self, infohash):
-        threading.Thread.__init__(self)
-        self.infohash = infohash
-    
-    def run(self):
-        with shoplock:
-            Session.begin()
-            shopdownload = Session.query(ShopDownload).filter(ShopDownload.infohash==unicode(self.infohash)).one()
-            if shopdownload.isdone:
-                return
-            log.info('[shop] starting to import ' + self.infohash)
-            promisedfiles = simplejson.loads(shopdownload.file_json)
-            rtorrent = xmlrpclib.ServerProxy(Config.SHOP_RPC_URL)
-            assert rtorrent.d.get_complete(self.infohash) == 1
-            release_mbid = shopdownload.release_mbid
-            mbalbum = Session.query(MBReleaseGroup) \
-                             .join(MBRelease) \
-                             .filter(MBRelease.gid==release_mbid) \
-                             .one()
-            mbartists = Session.query(MBArtist, MBArtistName) \
-                               .join(MBArtistCreditName, MBArtistCredit, MBReleaseGroup) \
-                               .join(MBArtist.name) \
-                               .filter(MBReleaseGroup.gid==mbalbum.gid) \
-                               .all()
-            artists = Session.query(Artist) \
-                             .filter(Artist.mbid.in_(map(lambda x: x[0].gid, mbartists))) \
-                             .all()
-            localartistmbids = map(attrgetter('mbid'), artists)
-            # Add Album, Artists and artist-album relationships
-            insertmaps = []
-            for (artist, name) in mbartists:
-                if artist.gid not in localartistmbids:
-                    a = Artist(name.name, artist.gid)
-                    artists.append(a)
-                    Session.add(a)
-            albumname = mbalbum.name.name
-            artistname = mbalbum.artistcredit.name.name
-            albummeta = mbalbum.meta[0]
-            album = Album(unicode(mbalbum.gid), unicode(albumname), unicode(artistname), albummeta.year, albummeta.month, albummeta.day, unicode(artistname + ' ' + albumname))
-            album.artists = artists
-            # Build up mapping of promised filename -> (Track)
-            results = Session.query(MBTrack, MBMedium, MBRecording, MBTrackName) \
-                             .join(MBTrackList, MBMedium, MBRelease) \
-                             .join(MBRecording) \
-                             .join(MBTrack.name) \
-                             .filter(MBRelease.gid==release_mbid) \
-                             .all()
-            tracks = []
-            for (track, medium, recording, name) in results:
-                stableid = hashlib.md5(release_mbid + '_' + recording.gid +
-                                       '_' + str(track.position) + '_' + str(medium.position)).hexdigest()
-                track = Track(unicode(stableid), None, recording.gid, mbalbum.gid, unicode(name.name), track.position, medium.position, albumname, artistname)
-                tracks.append(track)
-                Session.add(track)
-            tracks.sort(key=attrgetter('discnum'))
-            tracks.sort(key=attrgetter('tracknum'))
-            assert len(promisedfiles) == len(tracks)
-            promisedfilemap = {}
-            for i in range(len(tracks)):
-                normalizedfilename = filter(str.isalnum, unicodedata.normalize('NFKD', promisedfiles[i].lower()).encode('ascii', 'ignore'))
-                assert normalizedfilename not in promisedfilemap
-                promisedfilemap[normalizedfilename] = tracks[i]
-            # Build up mapping of absolute track filename -> (Track, AudioFile),
-            # and link files into their proper library location
-            trackfiles = []
-            now = datetime.now()
-            dirpath = album.mbid[:2] + '/' + album.mbid
-            os.mkdir(Config.MUSIC_PATH + dirpath)
-            torrentdir = rtorrent.d.get_base_path(self.infohash)
-            # scp stuff back if necessary
-            if Config.SCP_SHOP_DOWNLOADS:
-                remote_dir = pipes.quote(pipes.quote(torrentdir)) # this is awesome
-                local_dir = Config.SCP_FOLDER + '/' + self.infohash
-                cmd = Config.SCP_CMD + ' ' + Config.SCP_REMOTE + ':' + remote_dir + ' ' + local_dir
-                log.info('[shop] running ' + cmd)
-                retval = os.system(cmd)
-                if retval != 0:
-                    raise Exception('scp command [' + cmd + '] returned ' + str(retval))
-                torrentdir = local_dir
-            os.system("find " + torrentdir + " -type f -exec rename -v 's/[^[:ascii:]]/_/g' {} \;")
-            for root, dirs, actualfiles in os.walk(torrentdir):
-                for f in actualfiles:
-                    abspath = os.path.join(root, f)
-                    relpath = os.path.join(os.path.relpath(root, torrentdir), f)
-                    if relpath.startswith('./'):
-                        relpath = relpath[2:]
-                    normalizedfilename = filter(str.isalnum, unicodedata.normalize('NFKD', relpath.lower()).encode('ascii', 'ignore'))
-                    if normalizedfilename not in promisedfilemap:
-                        continue
-                    track = promisedfilemap[normalizedfilename]
-                    filepath = dirpath + '/' + release_mbid + '-' + track.mbid + '.mp3'
-                    os.link(abspath, Config.MUSIC_PATH + filepath)
-                    filesize = os.path.getsize(abspath)
-                    filemtime = datetime.fromtimestamp(os.path.getmtime(abspath))
-                    mutagen = MP3(abspath)
-                    info = mutagen.info
-                    mp3bitrate = info.bitrate
-                    mp3samplerate = info.sample_rate
-                    mp3length = int(round(info.length))
-                    audiofile = AudioFile(release_mbid, track.mbid, unicode(filepath), filesize, filemtime, mp3bitrate,
-                                          mp3samplerate, mp3length, now)
-                    track.file = audiofile
-                    trackfiles.append({'track' : track, 'file' : audiofile, 'path' : abspath})
-                    Session.add(audiofile)
-            Session.add(album)
-            assert len(trackfiles) == len(tracks) == len(promisedfilemap)
-            shopdownload.isdone = True
-            shopdownload.finished = datetime.now()
-            Session.commit()
-            log.info('[shop] done importing ' + self.infohash)
+def importDownload(shopdownload):
+    with importlock:
+        Session.begin()
+        assert not shopdownload.isdone
+        log.info('[shop] starting to import ' + shopdownload.infohash)
+        promisedfiles = simplejson.loads(shopdownload.file_json)
+        rtorrent = xmlrpclib.ServerProxy(Config.SHOP_RPC_URL)
+        assert rtorrent.d.get_complete(shopdownload.infohash) == 1
+        release_mbid = shopdownload.release_mbid
+        mbalbum = Session.query(MBReleaseGroup) \
+                         .join(MBRelease) \
+                         .filter(MBRelease.gid==release_mbid) \
+                         .one()
+        mbartists = Session.query(MBArtist, MBArtistName) \
+                           .join(MBArtistCreditName, MBArtistCredit, MBReleaseGroup) \
+                           .join(MBArtist.name) \
+                           .filter(MBReleaseGroup.gid==mbalbum.gid) \
+                           .all()
+        artists = Session.query(Artist) \
+                         .filter(Artist.mbid.in_(map(lambda x: x[0].gid, mbartists))) \
+                         .all()
+        localartistmbids = map(attrgetter('mbid'), artists)
+        # Add Album, Artists and artist-album relationships
+        insertmaps = []
+        for (artist, name) in mbartists:
+            if artist.gid not in localartistmbids:
+                a = Artist(name.name, artist.gid)
+                artists.append(a)
+                Session.add(a)
+        albumname = mbalbum.name.name
+        artistname = mbalbum.artistcredit.name.name
+        albummeta = mbalbum.meta[0]
+        album = Album(unicode(mbalbum.gid), unicode(albumname), unicode(artistname), albummeta.year, albummeta.month, albummeta.day, unicode(artistname + ' ' + albumname))
+        album.artists = artists
+        # Build up mapping of promised filename -> (Track)
+        results = Session.query(MBTrack, MBMedium, MBRecording, MBTrackName) \
+                         .join(MBTrackList, MBMedium, MBRelease) \
+                         .join(MBRecording) \
+                         .join(MBTrack.name) \
+                         .filter(MBRelease.gid==release_mbid) \
+                         .all()
+        tracks = []
+        for (track, medium, recording, name) in results:
+            stableid = hashlib.md5(release_mbid + '_' + recording.gid +
+                                   '_' + str(track.position) + '_' + str(medium.position)).hexdigest()
+            track = Track(unicode(stableid), None, recording.gid, mbalbum.gid, unicode(name.name), track.position, medium.position, albumname, artistname)
+            tracks.append(track)
+            Session.add(track)
+        tracks.sort(key=attrgetter('discnum'))
+        tracks.sort(key=attrgetter('tracknum'))
+        assert len(promisedfiles) == len(tracks)
+        promisedfilemap = {}
+        for i in range(len(tracks)):
+            normalizedfilename = filter(str.isalnum, unicodedata.normalize('NFKD', promisedfiles[i].lower()).encode('ascii', 'ignore'))
+            assert normalizedfilename not in promisedfilemap
+            promisedfilemap[normalizedfilename] = tracks[i]
+        # Build up mapping of absolute track filename -> (Track, AudioFile),
+        # and link files into their proper library location
+        trackfiles = []
+        now = datetime.now()
+        dirpath = album.mbid[:2] + '/' + album.mbid
+        os.mkdir(Config.MUSIC_PATH + dirpath)
+        torrentdir = rtorrent.d.get_base_path(shopdownload.infohash)
+        # scp stuff back if necessary
+        if Config.SCP_SHOP_DOWNLOADS:
+            remote_dir = pipes.quote(pipes.quote(torrentdir)) # this is awesome
+            local_dir = Config.SCP_FOLDER + '/' + shopdownload.infohash
+            cmd = Config.SCP_CMD + ' ' + Config.SCP_REMOTE + ':' + remote_dir + ' ' + local_dir
+            log.info('[shop] running ' + cmd)
+            retval = os.system(cmd)
+            if retval != 0:
+                raise Exception('scp command [' + cmd + '] returned ' + str(retval))
+            torrentdir = local_dir
+        os.system("find " + torrentdir + " -type f -exec rename -v 's/[^[:ascii:]]/_/g' {} \;")
+        for root, dirs, actualfiles in os.walk(torrentdir):
+            for f in actualfiles:
+                abspath = os.path.join(root, f)
+                relpath = os.path.join(os.path.relpath(root, torrentdir), f)
+                if relpath.startswith('./'):
+                    relpath = relpath[2:]
+                normalizedfilename = filter(str.isalnum, unicodedata.normalize('NFKD', relpath.lower()).encode('ascii', 'ignore'))
+                if normalizedfilename not in promisedfilemap:
+                    continue
+                track = promisedfilemap[normalizedfilename]
+                filepath = dirpath + '/' + release_mbid + '-' + track.mbid + '.mp3'
+                os.link(abspath, Config.MUSIC_PATH + filepath)
+                filesize = os.path.getsize(abspath)
+                filemtime = datetime.fromtimestamp(os.path.getmtime(abspath))
+                mutagen = MP3(abspath)
+                info = mutagen.info
+                mp3bitrate = info.bitrate
+                mp3samplerate = info.sample_rate
+                mp3length = int(round(info.length))
+                audiofile = AudioFile(release_mbid, track.mbid, unicode(filepath), filesize, filemtime, mp3bitrate,
+                                      mp3samplerate, mp3length, now)
+                track.file = audiofile
+                trackfiles.append({'track' : track, 'file' : audiofile, 'path' : abspath})
+                Session.add(audiofile)
+        Session.add(album)
+        assert len(trackfiles) == len(tracks) == len(promisedfilemap)
+        shopdownload.isdone = True
+        shopdownload.finished = datetime.now()
+        Session.commit()
+        log.info('[shop] done importing ' + shopdownload.infohash)
 

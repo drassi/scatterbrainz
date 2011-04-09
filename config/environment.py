@@ -11,7 +11,7 @@ import scatterbrainz.lib.helpers
 from scatterbrainz.config.routing import make_map
 from scatterbrainz.model import init_model
 
-#from scatterbrainz.services.albumartworker import start_albumartworker
+from scatterbrainz.services.shopworker import start_shopworker
 
 def load_environment(global_conf, app_conf):
     """Configure the Pylons environment via the ``pylons.config``
@@ -46,5 +46,5 @@ def load_environment(global_conf, app_conf):
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)
     
-    #start_albumartworker()
-    
+    start_shopworker()
+
