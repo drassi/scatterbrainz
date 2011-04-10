@@ -25,6 +25,7 @@ class ShopDownload(Base):
     finished = Column(u'finished', DateTime())
     isdone = Column(u'is_done', Boolean(), nullable=False)
     failedimport = Column(u'failed_import', Boolean(), nullable=False)
+    importtrace = Column(u'import_trace', Unicode(), nullable=True)
     minscore = Column(u'min_score', Float(), nullable=False)
     avgscore = Column(u'avg_score', Float(), nullable=False)
     owner_id = Column(u'owner_id', Integer(), ForeignKey('scatterbrainz_user.user_id'), nullable=False)
@@ -45,5 +46,6 @@ class ShopDownload(Base):
         self.finished = None
         self.isdone = False
         self.failedimport = False
+        self.importtrace = None
         self.owner_id = owner_id
 

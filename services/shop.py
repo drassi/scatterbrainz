@@ -12,7 +12,6 @@ import tempfile
 import xmlrpclib
 import threading
 import simplejson
-import unicodedata
 import lxml.html as lxml
 from mutagen.mp3 import MP3
 from datetime import datetime, timedelta
@@ -310,7 +309,7 @@ def importDownload(shopdownload):
         assert len(promisedfiles) == len(tracks), 'len(promisedfiles=' + promisedfiles.__repr__() + ') != len(tracks=' + tracks.__repr__() + ')'
         promisedfilemap = {}
         for i in range(len(tracks)):
-            normalizedfilename = filter(str.isalnum, unicodedata.normalize('NFKD', promisedfiles[i].lower()).encode('ascii', 'ignore'))
+            normalizedfilename = filter(str.isalnum, promisedfiles[i].lower().encode('ascii', 'ignore'))
             assert normalizedfilename not in promisedfilemap, 'normalizedfilename='+normalizedfilename + ' in promisedfilemap=' + promisedfilemap.__repr__()
             promisedfilemap[normalizedfilename] = tracks[i]
         # Build up mapping of absolute track filename -> (Track, AudioFile),
@@ -336,14 +335,14 @@ def importDownload(shopdownload):
             if retval != 0:
                 raise Exception('scp command [' + cmd + '] returned ' + str(retval))
             torrentdir = local_dir
-        os.system("find " + torrentdir + " -type f -exec rename -v 's/[^[:ascii:]]/_/g' {} \;")
+        os.system("find " + torrentdir + " -type f -exec rename -v 's/[^[:ascii:]]//g' {} \;")
         for root, dirs, actualfiles in os.walk(torrentdir):
             for f in actualfiles:
                 abspath = os.path.join(root, f)
                 relpath = os.path.join(os.path.relpath(root, torrentdir), f)
                 if relpath.startswith('./'):
                     relpath = relpath[2:]
-                normalizedfilename = filter(str.isalnum, unicodedata.normalize('NFKD', relpath.lower()).encode('ascii', 'ignore'))
+                normalizedfilename = filter(str.isalnum, relpath.lower().encode('ascii', 'ignore'))
                 if normalizedfilename not in promisedfilemap:
                     continue
                 track = promisedfilemap[normalizedfilename]
@@ -367,4 +366,22 @@ def importDownload(shopdownload):
         shopdownload.finished = datetime.now()
         Session.commit()
         log.info('[shop] done importing ' + shopdownload.infohash)
+
+def clearimport(download):
+    with importlock:
+        assert not download.isdone, 'download is already done'
+        assert download.failedimport, 'import isnt failed'
+        mbid = download.release_group_mbid
+        dirpath = mbid[:2] + '/' + mbid
+        cmd = 'rm -rf ' + Config.MUSIC_PATH + dirpath
+        log.info('running ' + cmd)
+        os.system(cmd)
+        if Config.SCP_SHOP_DOWNLOADS:
+            cmd = 'rm -rf ' + Config.SCP_FOLDER + '/' + download.infohash
+            log.info('running ' + cmd)
+            os.system(cmd)
+        Session.begin()
+        download.failedimport = False
+        download.importtrace = None
+        Session.commit()
 

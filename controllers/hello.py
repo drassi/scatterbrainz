@@ -740,10 +740,11 @@ class HelloController(BaseController):
         json = {'downloads' : downloadjson, 'done' : donejson}
         return simplejson.dumps(json)
     
-    def finishDownloadAJAX(self):
-        infohash = request.params['id']
-        release_mbid = shopservice.loadFinishedTorrent(Session, infohash)
-        return simplejson.dumps({'mbid' : release_mbid})
+    def clearImport(self):
+        mbid = request.params['mbid']
+        download = Session.query(ShopDownload).filter(ShopDownload.release_group_mbid==mbid).one()
+        shopservice.clearimport(download)
+        return 'OK'
     
     def _mapify(self, urls):
         m = {}

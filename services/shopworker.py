@@ -1,7 +1,9 @@
+import sys
 import time
 import logging
 import xmlrpclib
 import threading
+import traceback
 
 from datetime import datetime, timedelta
 
@@ -30,14 +32,17 @@ class ShopWorkerThread(threading.Thread):
                             iscomplete = rtorrent.d.get_complete(infohash) == 1
                             if iscomplete:
                                 shopservice.importDownload(download)
-                        except Exception as e:
-                            log.error('[shop worker] caught exception in loop ' + e.__repr__())
+                        except:
+                            exc_type, exc_value, exc_traceback = sys.exc_info()
+                            importtrace = repr(traceback.format_exception(exc_type, exc_value, exc_traceback))
+                            log.error('[shop worker] caught exception in loop ' + importtrace)
                             Session.rollback()
                             Session.begin()
                             download.failedimport = True
+                            download.importtrace = importtrace
                             Session.commit()
             except Exception as e:
-                log.error('[shop worker] caught exception out of loop ' + e.__repr__())
+                log.error('[shop worker] caught exception out of loop ' + repr(e))
                 Session.rollback()
             if pendingdownloads:
                 time.sleep(10)

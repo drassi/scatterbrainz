@@ -15,7 +15,7 @@ class MBArtistName(Base):
     __tablename__ = 'artist_name'
     
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
-    name = Column(u'name', String(length=None, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    name = Column(u'name', String(length=None, convert_unicode=True, assert_unicode=None), primary_key=False, nullable=False)
 
 class MBArtist(Base):
 
@@ -36,8 +36,8 @@ class MBArtist(Base):
     #typeid = Column(u'type', Integer(), ForeignKey('artist_type.id'), primary_key=False)
     #countryid = Column(u'country', Integer(), ForeignKey('country.id'), primary_key=False)
     #genderid = Column(u'gender', Integer(), ForeignKey('gender.id'), primary_key=False)
-    comment = Column(u'comment', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
-    #ipicode = Column(u'ipicode', String(length=11, convert_unicode=False, assert_unicode=None), primary_key=False)
+    comment = Column(u'comment', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False)
+    #ipicode = Column(u'ipicode', String(length=11, convert_unicode=True, assert_unicode=None), primary_key=False)
     #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBReleaseName(Base):
@@ -45,7 +45,7 @@ class MBReleaseName(Base):
     __tablename__ = 'release_name'
     
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
-    name = Column(u'name', String(length=None, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    name = Column(u'name', String(length=None, convert_unicode=True, assert_unicode=None), primary_key=False, nullable=False)
 
 class MBArtistCredit(Base):
 
@@ -68,14 +68,14 @@ class MBArtistCreditName(Base):
     artist = orm.relation(MBArtist)
     nameid = Column(u'name', Integer(), ForeignKey('artist_name.id'), primary_key=False, nullable=False)
     name = orm.relation(MBArtistName)
-    joinphrase = Column(u'join_phrase', String(length=32, convert_unicode=False, assert_unicode=None), primary_key=False)
+    joinphrase = Column(u'join_phrase', String(length=32, convert_unicode=True, assert_unicode=None), primary_key=False)
 
 class MBReleaseGroupType(Base):
 
     __tablename__ = 'release_group_type'
 
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
-    name = Column(u'name', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    name = Column(u'name', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False, nullable=False)
 
 class MBReleaseGroup(Base):
 
@@ -89,7 +89,7 @@ class MBReleaseGroup(Base):
     artistcredit = orm.relation(MBArtistCredit, backref='releasegroups')
     typeid = Column(u'type', Integer(), ForeignKey('release_group_type.id'), primary_key=False)
     releasegrouptype = orm.relation(MBReleaseGroupType)
-    comment = Column(u'comment', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
+    comment = Column(u'comment', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False)
     #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBReleaseGroupMeta(Base):
@@ -125,8 +125,8 @@ class MBRelease(Base):
     dateyear = Column(u'date_year', SmallInteger(), primary_key=False)
     datemonth = Column(u'date_month', SmallInteger(), primary_key=False)
     dateday = Column(u'date_day', SmallInteger(), primary_key=False)
-    barcode = Column(u'barcode', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
-    comment = Column(u'comment', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
+    barcode = Column(u'barcode', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False)
+    comment = Column(u'comment', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False)
     #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
     quality = Column(u'quality', SmallInteger(), primary_key=False, nullable=False)
 
@@ -135,7 +135,7 @@ class MBTrackName(Base):
     __tablename__ = 'track_name'
 
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
-    name = Column(u'name', String(length=None, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    name = Column(u'name', String(length=None, convert_unicode=True, assert_unicode=None), primary_key=False, nullable=False)
 
 class MBRecording(Base):
 
@@ -148,7 +148,7 @@ class MBRecording(Base):
     artistcreditid = Column(u'artist_credit', Integer(), ForeignKey('artist_credit.id'), primary_key=False, nullable=False)
     artistcredit = orm.relation(MBArtistCredit, backref='recordings')
     length = Column(u'length', Integer(), primary_key=False)
-    comment = Column(u'comment', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
+    comment = Column(u'comment', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False)
     #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBRecordingGIDRedirect(Base):
@@ -202,7 +202,7 @@ class MBMedium(Base):
     release = orm.relation(MBRelease)
     position = Column(u'position', Integer(), primary_key=False, nullable=False)
     formatid = Column(u'format', Integer(), primary_key=False)
-    name = Column(u'name', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False)
+    name = Column(u'name', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False)
     #editpending = Column(u'editpending', Integer(), primary_key=False, nullable=False)
 
 class MBLinkType(Base):
@@ -213,13 +213,13 @@ class MBLinkType(Base):
     Column(u'parent', Integer(), ForeignKey('link_type.id'), primary_key=False)
     Column(u'child_order', Integer(), primary_key=False, nullable=False)
     Column(u'gid', PGUuid(), primary_key=False, nullable=False)
-    Column(u'entity_type0', String(length=50, convert_unicode=False, assert_unicode=None), primary_key=False)
-    Column(u'entity_type1', String(length=50, convert_unicode=False, assert_unicode=None), primary_key=False)
-    name = Column(u'name', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    Column(u'description', Text(length=None, convert_unicode=False, assert_unicode=None), primary_key=False)
-    linkphrase = Column(u'link_phrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    rlinkphrase = Column(u'reverse_link_phrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    Column(u'short_link_phrase', String(length=255, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
+    Column(u'entity_type0', String(length=50, convert_unicode=True, assert_unicode=None), primary_key=False)
+    Column(u'entity_type1', String(length=50, convert_unicode=True, assert_unicode=None), primary_key=False)
+    name = Column(u'name', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False, nullable=False)
+    Column(u'description', Text(length=None, convert_unicode=True, assert_unicode=None), primary_key=False)
+    linkphrase = Column(u'link_phrase', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False, nullable=False)
+    rlinkphrase = Column(u'reverse_link_phrase', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False, nullable=False)
+    Column(u'short_link_phrase', String(length=255, convert_unicode=True, assert_unicode=None), primary_key=False, nullable=False)
     Column(u'priority', Integer(), primary_key=False, nullable=False)
 
 class MBLink(Base):
@@ -286,8 +286,8 @@ class MBURL(Base):
     
     id = Column(u'id', Integer(), primary_key=True, nullable=False)
     Column(u'gid', PGUuid(), primary_key=False, nullable=False)
-    url = Column(u'url', Text(length=None, convert_unicode=False, assert_unicode=None), primary_key=False, nullable=False)
-    Column(u'description', Text(length=None, convert_unicode=False, assert_unicode=None), primary_key=False)
+    url = Column(u'url', Text(length=None, convert_unicode=True, assert_unicode=None), primary_key=False, nullable=False)
+    Column(u'description', Text(length=None, convert_unicode=True, assert_unicode=None), primary_key=False)
     Column(u'ref_count', Integer(), primary_key=False, nullable=False)
     #Column(u'editpending', Integer(), primary_key=False, nullable=False)
     
