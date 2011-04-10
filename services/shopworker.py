@@ -19,6 +19,7 @@ class ShopWorkerThread(threading.Thread):
             try:
                 downloads = Session.query(ShopDownload) \
                                    .filter(ShopDownload.isdone==False) \
+                                   .filter(ShopDownload.failedimport==False) \
                                    .all()
                 pendingdownloads = len(downloads) != 0
                 if pendingdownloads:
@@ -30,10 +31,13 @@ class ShopWorkerThread(threading.Thread):
                             if iscomplete:
                                 shopservice.importDownload(download)
                         except Exception as e:
-                            log.error('[shop worker] caught exception! [' + e.__repr__() + ']')
+                            log.error('[shop worker] caught exception in loop ' + e.__repr__())
                             Session.rollback()
+                            Session.begin()
+                            download.failedimport = True
+                            Session.commit()
             except Exception as e:
-                log.error('[shop worker] caught exception! [' + e.__repr__() + ']')
+                log.error('[shop worker] caught exception out of loop ' + e.__repr__())
                 Session.rollback()
             if pendingdownloads:
                 time.sleep(10)

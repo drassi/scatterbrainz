@@ -259,11 +259,12 @@ Import a finished torrent
 def importDownload(shopdownload):
     with importlock:
         Session.begin()
-        assert not shopdownload.isdone
+        assert not shopdownload.isdone, 'download is already imported'
+        assert not shopdownload.failedimport, 'download already failed import'
         log.info('[shop] starting to import ' + shopdownload.infohash)
         promisedfiles = simplejson.loads(shopdownload.file_json)
         rtorrent = xmlrpclib.ServerProxy(Config.SHOP_RPC_URL)
-        assert rtorrent.d.get_complete(shopdownload.infohash) == 1
+        assert rtorrent.d.get_complete(shopdownload.infohash) == 1, 'rtorrent says download isnt done yet'
         release_mbid = shopdownload.release_mbid
         mbalbum = Session.query(MBReleaseGroup) \
                          .join(MBRelease) \
@@ -306,17 +307,19 @@ def importDownload(shopdownload):
             Session.add(track)
         tracks.sort(key=attrgetter('discnum'))
         tracks.sort(key=attrgetter('tracknum'))
-        assert len(promisedfiles) == len(tracks)
+        assert len(promisedfiles) == len(tracks), 'len(promisedfiles=' + promisedfiles.__repr__() + ') != len(tracks=' + tracks.__repr__() + ')'
         promisedfilemap = {}
         for i in range(len(tracks)):
             normalizedfilename = filter(str.isalnum, unicodedata.normalize('NFKD', promisedfiles[i].lower()).encode('ascii', 'ignore'))
-            assert normalizedfilename not in promisedfilemap
+            assert normalizedfilename not in promisedfilemap, 'normalizedfilename='+normalizedfilename + ' in promisedfilemap=' + promisedfilemap.__repr__()
             promisedfilemap[normalizedfilename] = tracks[i]
         # Build up mapping of absolute track filename -> (Track, AudioFile),
         # and link files into their proper library location
         trackfiles = []
         now = datetime.now()
         dirpath = album.mbid[:2] + '/' + album.mbid
+        if os.path.isdir(Config.MUSIC_PATH + dirpath):
+            assert False, 'directory ' + Config.MUSIC_PATH + dirpath + ' already exists'
         os.mkdir(Config.MUSIC_PATH + dirpath)
         torrentdir = rtorrent.d.get_base_path(shopdownload.infohash)
         # scp stuff back if necessary
@@ -359,7 +362,7 @@ def importDownload(shopdownload):
                 trackfiles.append({'track' : track, 'file' : audiofile, 'path' : abspath})
                 Session.add(audiofile)
         Session.add(album)
-        assert len(trackfiles) == len(tracks) == len(promisedfilemap)
+        assert len(trackfiles) == len(tracks) == len(promisedfilemap), 'len(trackfiles='+str(len(trackfiles))+') == len(tracks='+str(len(tracks))+') == len(promisedfilemap='+str(len(promisedfilemap))+')'
         shopdownload.isdone = True
         shopdownload.finished = datetime.now()
         Session.commit()
