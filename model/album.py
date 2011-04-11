@@ -13,7 +13,7 @@ class Album(Base):
 
     __tablename__ = 'scatterbrainz_albums'
 
-    mbid = Column(u'release_group_mbid', PGUuid(), primary_key=True)
+    mbid = Column(u'release_group_mbid', PGUuid(), ForeignKey('release_group.gid'), primary_key=True)
     name = Column(u'release_group_name', Unicode(), nullable=False)
     artistcredit = Column(u'artist_credit_name', Unicode(), nullable=False)
     year = Column(u'release_group_year', Integer())

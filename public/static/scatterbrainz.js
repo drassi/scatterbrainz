@@ -668,6 +668,10 @@ function playlistNextPrev(next) {
                 nextRandomAlbum();
             } else if ($('#playlistSimilarTrack').attr('checked')) {
                 nextSimilarTrack(playing.attr('id'));
+            } else if ($('#playlistRooTrack').attr('checked')) {
+                nextRooTrack();
+            } else if ($('#playlistRooAlbum').attr('checked')) {
+                nextRooAlbum();
             } else {
                 $('#play').show();
                 $('#pause').hide();
@@ -726,6 +730,22 @@ function nextSimilarTrack(id) {
     $.getJSON(
         '/hello/similarTrackAJAX',
         {'id':id},
+        playAJAXCallback
+    );
+}
+
+function nextRooTrack(id) {
+    $.getJSON(
+        '/hello/randomRooTrackAJAX',
+        {},
+        playAJAXCallback
+    );
+}
+
+function nextRooAlbum(id) {
+    $.getJSON(
+        '/hello/randomRooAlbumAJAX',
+        {},
         playAJAXCallback
     );
 }

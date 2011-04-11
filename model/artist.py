@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 
-from sqlalchemy import Column, Integer, String, Unicode, DateTime
+from sqlalchemy import Column, Integer, String, Unicode, DateTime, ForeignKey
 from sqlalchemy.databases import postgres
 
 from scatterbrainz.model.meta import metadata
@@ -12,7 +12,7 @@ class Artist(Base):
     __tablename__ = 'scatterbrainz_artists'
 
     name = Column(u'artist_name', Unicode(), nullable=False)
-    mbid = Column(u'artist_mbid', Unicode(), primary_key=True)
+    mbid = Column(u'artist_mbid', Unicode(), ForeignKey('artist.gid'), primary_key=True)
     
     def __init__(self, name, mbid):
         self.name = name

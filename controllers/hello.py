@@ -39,6 +39,7 @@ from scatterbrainz.model.auth import User
 from scatterbrainz.model import ShopDownload
 
 from scatterbrainz.config.config import Config
+from scatterbrainz.config.bonnaroo import Bonnaroo
 
 from scatterbrainz.services import albumart
 from scatterbrainz.services import lyrics as lyricsservice
@@ -146,7 +147,26 @@ class HelloController(BaseController):
     def randomAlbumAJAX(self):
         album = Session.query(Album).order_by(random())[0]
         tracks = Session.query(Track) \
-                        .filter_by(albumid=album.id)
+                        .filter_by(albumid=album.mbid)
+        json = map(lambda x: x.toPlaylistJSON(), tracks)
+        return simplejson.dumps(json)
+
+    def randomRooTrackAJAX(self):
+        track = Session.query(Track) \
+                       .join(Album, Album.artists) \
+                       .filter(Artist.mbid.in_(Bonnaroo.artist_mbids)) \
+                       .order_by(random()) \
+                       .first()
+        return simplejson.dumps([track.toPlaylistJSON()])
+    
+    def randomRooAlbumAJAX(self):
+        album = Session.query(Album) \
+                       .join(Album.artists) \
+                       .filter(Artist.mbid.in_(Bonnaroo.artist_mbids)) \
+                       .order_by(random()) \
+                       .first()
+        tracks = Session.query(Track) \
+                        .filter_by(albumid=album.mbid)
         json = map(lambda x: x.toPlaylistJSON(), tracks)
         return simplejson.dumps(json)
     
