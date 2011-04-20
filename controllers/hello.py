@@ -216,11 +216,11 @@ class HelloController(BaseController):
         json = map(lambda x: x.toPlaylistJSON(), tracks)
         return simplejson.dumps(json)
     
-    ARTIST_SEARCH = "to_tsvector('english', unaccent(artist_name)) " + \
-                 "@@ to_tsquery('english', :search)"
+    ARTIST_SEARCH = "to_tsvector('mb_simple', unaccent(artist_name)) " + \
+                 "@@ to_tsquery('mb_simple', :search)"
     
-    ALBUM_TRACK_SEARCH = "to_tsvector('english', unaccent(search)) " + \
-                      "@@ to_tsquery('english', :search)"
+    ALBUM_TRACK_SEARCH = "to_tsvector('mb_simple', unaccent(search)) " + \
+                      "@@ to_tsquery('mb_simple', :search)"
     
     def searchAJAX(self):
         search = request.params['search']
