@@ -9,10 +9,10 @@ set -e
 
 # mkdir /tmp/musicbrainz
 # cd /tmp/musicbrainz
-# wget ftp://ftp.musicbrainz.org/pub/musicbrainz/data/ngs/20110222/mbdump.tar.bz2
-# wget ftp://ftp.musicbrainz.org/pub/musicbrainz/data/ngs/20110222/mbdump-derived.tar.bz2
-# md5sum mbdump.tar.bz2 = af10e32be7fd0a6f1fe983ad253ef79e
-# md5sum mbdump-derived.tar.bz2 = 00de969afe3b1e7af4a15aa6e2b44f3c
+# wget ftp://ftp.musicbrainz.org/pub/musicbrainz/data/ngs/xxx/mbdump.tar.bz2
+# wget ftp://ftp.musicbrainz.org/pub/musicbrainz/data/ngs/xxx/mbdump-derived.tar.bz2
+# 1130023c24cf1dbc70d5cf647854ee00 for 20110416-2/mbdump-derived.tar.bz2
+# 91a663776b9875dd70b00a270cb3a403 for 20110416-2/mbdump.tar.bz2
 # tar -xvf mbdump.tar.bz2
 # tar -xvf mbdump-derived.tar.bz2
 
@@ -61,7 +61,7 @@ echo Fixing redirected mbids
 python $MIGRATEDIR/generate_redirect_mbids.py | psql -U musicbrainz
 
 echo Vacuum 1
-time psql -U musicbrainz -c "VACUUM VERBOSE ANALYZE;"
+time psql -U musicbrainz -c "VACUUM ANALYZE;"
 
 echo Running create_scatterbrainz_constraints.sql
 time psql -1 -U musicbrainz -f /tmp/create_scatterbrainz_constraints.sql
@@ -70,5 +70,5 @@ echo Re-building artist, album, track mviews
 time psql -U musicbrainz -f $APPDIR/views/views.sql
 
 echo Vacuum 2
-time psql -U musicbrainz -c "VACUUM VERBOSE ANALYZE;"
+time psql -U musicbrainz -c "VACUUM ANALYZE;"
 

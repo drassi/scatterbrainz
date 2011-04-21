@@ -46,12 +46,22 @@ delete from scatterbrainz_similarartists
 # 25f54bb7-c393-44e4-8e26-e4f4cd7aa61c = Queen & David Bowie
 # 870c00b3-b06e-4baa-84e9-e436addf3150 = Air and Alessandro Baricco
 for mbid in ['25f54bb7-c393-44e4-8e26-e4f4cd7aa61c',
-             '870c00b3-b06e-4baa-84e9-e436addf3150']:
+             '870c00b3-b06e-4baa-84e9-e436addf3150',
+             '2e49035f-6e86-467d-b78f-be2ca0a93335',
+             'ea9fb089-bdb7-4c42-812b-3877020cab6c']:
     for table in ['scatterbrainz_artists',
                   'scatterbrainz_artistbio',
                   'scatterbrainz_similarartists',
                   'scatterbrainz_artist_albums']:
         print "delete from {table} where artist_mbid = '{mbid}';".format(table=table, mbid=mbid)
+
+# Delete merged albums leading to duplicate entries
+# c540102f-1b56-3fd4-811f-e32e7195f92c = Victrola favorites
+# 9fe3ccc2-9649-3ac3-bc7f-a82d9b6ee815 = Ga Ga Ga Ga
+for mbid in ['c540102f-1b56-3fd4-811f-e32e7195f92c',
+             '9fe3ccc2-9649-3ac3-bc7f-a82d9b6ee815']:
+    print "delete from scatterbrainz_albums where release_group_mbid = '{mbid}';".format(mbid=mbid)
+    print "insert into scatterbrainz_albums (release_group_mbid) values ('{mbid}');".format(mbid=mbid)
 
 print 'COMMIT;'
 
