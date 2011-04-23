@@ -22,7 +22,7 @@ export SNAPDIR=/tmp/musicbrainz/mbdump
 export MBSQLDIR=/tmp/musicbrainz-server/admin/sql
 
 # git clone git://git.musicbrainz.org/musicbrainz-server.git /tmp/musicbrainz-server
-# git apply $APPDIR/musicbrainz-server.patch
+# git apply $APPDIR/migrations/003-load-mbdump/musicbrainz-server.patch
 
 # sudo su postgres
 # export PGPASSWORD=xxx

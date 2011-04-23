@@ -641,8 +641,8 @@ class HelloController(BaseController):
         query = Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
                        .join(MBReleaseName) \
                        .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
-                       .join(MBReleaseGroupMeta) \
-                       .join(MBReleaseGroupType) \
+                       .outerjoin(MBReleaseGroupMeta) \
+                       .outerjoin(MBReleaseGroupType) \
                        .filter(~exists().where(MBReleaseGroup.gid==Album.mbid)) \
                        .filter(~exists().where(MBReleaseGroup.gid==ShopDownload.release_group_mbid))
         limit = 30

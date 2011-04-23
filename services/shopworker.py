@@ -1,11 +1,13 @@
+import os
 import sys
 import time
 import logging
 import xmlrpclib
 import threading
 import traceback
-
 from datetime import datetime, timedelta
+
+from sqlalchemy import select, func
 
 from scatterbrainz.model.meta import Session
 from scatterbrainz.model import ShopDownload
@@ -14,8 +16,20 @@ from scatterbrainz.services import shop as shopservice
 
 log = logging.getLogger(__name__)
 
+importlockid=1234
+
 class ShopWorkerThread(threading.Thread):
+
     def run(self):
+        
+        # Only let one worker run via pg advisory lock
+        acquired = Session.execute(select([func.pg_try_advisory_lock(importlockid)])).fetchone()[0]
+        threadid = 'PID ' + str(os.getpid()) + ' thread ' + str(threading.current_thread())
+        if acquired:
+            log.info('[shop worker] %s acquired lock, starting..' % threadid)
+        else:
+            return
+        
         pendingdownloads = False
         while True:
             try:
@@ -47,7 +61,7 @@ class ShopWorkerThread(threading.Thread):
             if pendingdownloads:
                 time.sleep(10)
             else:
-                time.sleep(60)
+                time.sleep(30)
 
 def start_shopworker():
     worker = ShopWorkerThread()
