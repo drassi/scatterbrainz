@@ -528,8 +528,8 @@ class HelloController(BaseController):
         # albums
         albums = Session.query(MBReleaseGroup, MBReleaseName, MBReleaseGroupMeta, MBReleaseGroupType) \
                         .join(MBArtistCredit, MBArtistCreditName, MBArtist) \
-                        .join(MBReleaseGroupMeta) \
-                        .join(MBReleaseGroupType) \
+                        .outerjoin(MBReleaseGroupMeta) \
+                        .outerjoin(MBReleaseGroupType) \
                         .join(MBReleaseName) \
                         .filter(MBArtist.gid==mbid) \
                         .order_by([MBReleaseGroupMeta.year, MBReleaseGroupMeta.month, MBReleaseGroupMeta.day]) \
@@ -709,8 +709,8 @@ class HelloController(BaseController):
                     Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
                            .join(MBReleaseName) \
                            .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
-                           .join(MBReleaseGroupMeta) \
-                           .join(MBReleaseGroupType) \
+                           .outerjoin(MBReleaseGroupMeta) \
+                           .outerjoin(MBReleaseGroupType) \
                            .filter(MBReleaseGroup.gid==download.release_group_mbid) \
                            .one()
             if rgmeta and rgmeta.year:
@@ -740,8 +740,8 @@ class HelloController(BaseController):
                     Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
                            .join(MBReleaseName) \
                            .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
-                           .join(MBReleaseGroupMeta) \
-                           .join(MBReleaseGroupType) \
+                           .outerjoin(MBReleaseGroupMeta) \
+                           .outerjoin(MBReleaseGroupType) \
                            .filter(MBReleaseGroup.gid==download.release_group_mbid) \
                            .one()
             if rgmeta and rgmeta.year:
