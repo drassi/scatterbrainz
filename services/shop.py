@@ -35,7 +35,8 @@ opener.addheaders = [('User-agent', agent)]
 shoplock = Lock()
 importlock = Lock()
 shopbaseurl = Config.SHOP_URL
-loginurl = shopbaseurl + '/login.php'
+loginpath = 'login.php'
+loginurl = shopbaseurl + '/' + loginpath
 searchurl = shopbaseurl + '/torrents.php'
 maybeloggedin = False
 
@@ -48,7 +49,7 @@ def login():
         'login'      : 'Login'
     })
     response = opener.open(loginurl, authdata)
-    if response.geturl() == loginurl or loginurl in response.read():
+    if response.geturl() == loginurl or loginpath in response.read():
         raise Exception('couldnt login!')
     log.info('[shop] login success!')
     maybeloggedin = True
@@ -92,13 +93,13 @@ def download(Session, mbid, owner_id):
         handle = opener.open(url)
         page = lxml.parse(handle).getroot()
         html = lxml.tostring(page)
-        if loginurl in html:
+        if loginpath in html:
             log.warn('[shop] login url found in search result, logging in..')
             login()
             handle = opener.open(url)
             page = lxml.parse(handle).getroot()
             html = lxml.tostring(page)
-            if loginurl in html:
+            if loginpath in html:
                 log.error('[shop] couldnt login!')
                 raise Exception('couldnt login!')
         if 'Your search did not match anything' in html:
