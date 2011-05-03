@@ -729,13 +729,14 @@ class HelloController(BaseController):
                                  'type'   : rtype})
         downloadjson.sort(key=itemgetter('percent'))
         # Everyone's recently finished downloads
-        finished = Session.query(ShopDownload) \
+        finished = Session.query(ShopDownload, User) \
+                          .join(User) \
                           .filter(ShopDownload.isdone==True) \
                           .filter(ShopDownload.finished > datetime.now() - timedelta(days=7)) \
                           .order_by(desc(ShopDownload.finished)) \
                           .all()
         donejson = []
-        for download in finished:
+        for (download, user) in finished:
             (album, albumname, artistname, rgmeta, rgtype) = \
                     Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
                            .join(MBReleaseName) \
@@ -756,7 +757,8 @@ class HelloController(BaseController):
                              'album'  : albumname.name,
                              'artist' : artistname.name,
                              'year'   : year,
-                             'type'   : rtype})
+                             'type'   : rtype,
+                             'user'   : user.user_name})
         json = {'downloads' : downloadjson, 'done' : donejson}
         return simplejson.dumps(json)
     

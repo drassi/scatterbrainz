@@ -1207,11 +1207,12 @@ function showShopStatuses(data) {
                                  .append($('<span>').addClass('ui-icon ui-icon-play playAlbumButton'))
                                  .append($('<span>').addClass('ui-icon ui-icon-clock queueAlbumButton'));
         var e = $('<div>').addClass('artistAlbum').addClass('bold')
-                          .append($('<span>').addClass('shopAlbumArtist').text(album['artist']).attr('title', album['artist']))
-                          .append($('<span>').addClass('shopAlbumAlbum').text(album['album']).attr('title', album['album']))
-                          .append($('<span>').addClass('shopAlbumYear').text(album['year']))
-                          .append($('<span>').addClass('shopAlbumType').text(album['type']))
+                          .append($('<span>').addClass('shopAlbumDoneArtist').text(album['artist']).attr('title', album['artist']))
+                          .append($('<span>').addClass('shopAlbumDoneAlbum').text(album['album']).attr('title', album['album']))
+                          .append($('<span>').addClass('shopAlbumDoneYear').text(album['year']).attr('title', album['year']))
+                          .append($('<span>').addClass('shopAlbumDoneType').text(album['type']).attr('title', album['type']))
                           .append(buttons)
+                          .append($('<span>').addClass('shopAlbumDoneUser').text(album['user']).attr('title', album['user']))
                           .data('mbid', album['mbid']);
         $('div#shopDone').append(e);
     }

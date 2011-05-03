@@ -702,6 +702,27 @@ span.shopAlbumType {
     width: 15%;
 }
 
+span.shopAlbumDoneArtist {
+    width: 26%;
+}
+
+span.shopAlbumDoneAlbum {
+    width: 30%;
+}
+
+span.shopAlbumDoneYear {
+    width: 8%;
+}
+
+span.shopAlbumDoneType {
+    width: 12%;
+}
+
+span.shopAlbumDoneUser {
+    width: 14%;
+    font-weight: normal;
+}
+
 span.shopAlbumProgress {
     position: absolute;
     top: 0;
