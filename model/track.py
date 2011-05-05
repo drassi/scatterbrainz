@@ -15,7 +15,7 @@ class Track(Base):
     
     id = Column(u'stable_id', Unicode, primary_key=True)
     fileid = Column(u'file_id', Integer(), ForeignKey('scatterbrainz_files.id'), primary_key=False)
-    mbid = Column(u'track_mbid', PGUuid(), nullable=False)
+    mbid = Column(u'track_mbid', PGUuid(), ForeignKey('recording.gid'), nullable=False)
     albumid = Column(u'release_group_mbid', PGUuid(), ForeignKey('scatterbrainz_albums.release_group_mbid'), nullable=False)
     name = Column(u'track_name', Unicode, nullable=False)
     tracknum = Column(u'track_number', Integer(), nullable=False)

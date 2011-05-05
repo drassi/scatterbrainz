@@ -32,6 +32,8 @@ from scatterbrainz.model.albumsummary import AlbumSummary
 from scatterbrainz.model.similarartist import SimilarArtist
 from scatterbrainz.model.shopdownload import ShopDownload
 from scatterbrainz.model.shopdownloadattempt import ShopDownloadAttempt
+from scatterbrainz.model.playlistitem import PlaylistItem
+from scatterbrainz.model.playlist import Playlist
 
 PGUuid = postgres.PGUuid
 
@@ -40,7 +42,7 @@ artist_albums = sa.Table('scatterbrainz_artist_albums', meta.metadata,
     sa.Column('release_group_mbid', PGUuid, sa.ForeignKey('scatterbrainz_albums.release_group_mbid'))
 )
 
-
 Artist.albums = orm.relation(Album, secondary=artist_albums, backref='artists')
 Album.tracks = orm.relation(Track, backref='album')
 Track.file = orm.relation(AudioFile, backref='track')
+

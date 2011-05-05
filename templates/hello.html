@@ -5,7 +5,9 @@
         <script type="text/javascript" src="/static/jquery.jplayer.js"></script>
         <script type="text/javascript" src="/static/jquery.tablesorter.js"></script>
         <script type="text/javascript" src="/static/jquery-ui-1.8rc3.custom.min.js"></script>
-        <script type="text/javascript" src="/static/scatterbrainz.js"></script>
+        <script type="text/javascript" src="/static/jquery.livequery.js"></script>
+        <script type="text/javascript" src="/static/json2.js"></script>
+        <script type="text/javascript" src="/static/scatterbrainz.js?0"></script>
         <script type="text/javascript" src="/static/jquery.tree.js"></script>
         <script type="text/javascript" src="/static/jquery.hotkeys.js"></script>
         <script type="text/javascript" src="/static/splitter.js"></script>
@@ -13,7 +15,7 @@
         <script type="text/javascript" src="/static/fancybox/jquery.fancybox-1.3.1.pack.js"></script>
         <script type="text/javascript" src="/static/fancybox/jquery.easing-1.3.pack.js"></script>
         <script type="text/javascript" src="/static/fancybox/jquery.mousewheel-3.0.2.pack.js"></script>
-        <link rel="stylesheet" type="text/css" href="/static/scatterbrainz.css" />
+        <link rel="stylesheet" type="text/css" href="/static/scatterbrainz.css?0" />
         <link rel="stylesheet" type="text/css" href="/static/jquery-ui-1.8rc3.custom.css" />
         <link rel="stylesheet" type="text/css" href="/static/fancybox/jquery.fancybox-1.3.1.css" />
         <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
@@ -30,10 +32,16 @@
             <button id="goSearch">Search</button>
         </div>
     </div>
-
+    <div id="switchBrowseMode"  class="transparent">
+        <div id="artistModeButton" class="selectedBrowseMode">ARTISTS</div>
+        <div id="playlistModeButton">PLAYLISTS</div>
+    </div>
     <div id="browseContainer" class="expandHeightToFitBrowser transparent" expandHeightOffsetPx="70">
         <div id="browser" class="noBrowserFocusIndicator" tabindex="100"></div>
         <div id="searchBrowser" class="noBrowserFocusIndicator" tabindex="101"></div>
+    </div>
+    <div id="playlistContainer" style="display: none;" class="expandHeightToFitBrowser transparent" expandHeightOffsetPx="70">
+        <div id="playlistBrowser" class="noBrowserFocusIndicator" tabindex="102"></div>
     </div>
 </div>
 <div class="jp-playlist-player browsePane">
@@ -54,7 +62,7 @@
         </table>
     </div>
     <div id="rightPane">
-        <div class="jp-playlist noBrowserFocusIndicator transparent expandHeightToFitBrowser" expandHeightOffsetPx="67" tabindex="102">
+        <div class="jp-playlist noBrowserFocusIndicator transparent expandHeightToFitBrowser" expandHeightOffsetPx="92" tabindex="102">
             <table id="playlist" class="playlistTable" border="0" cellspacing="0" cellpadding="0">
                 <thead class="playlistHead">
                     <tr class="playlistHeadRow">
@@ -68,6 +76,13 @@
                 </thead>
                 <tbody id="playlistbody"></tbody>
             </table>
+        </div>
+        <div id="playlistControls" class="transparent expandHeightToFitBrowser" expandHeightOffsetPx="67">
+            <div id="playlistControlSave">Save</div>
+            <div id="playlistControlClear">Clear</div>
+            <div id="playlistControlTruncatePlayed">Clear played</div>
+            <div id="playlistControlTruncateUnplayed">Clear unplayed</div>
+            <div id="playlistControlRandomize">Randomize</div>
         </div>
     </div>
 </div>
@@ -173,6 +188,7 @@
    <button id="shopNav" class="screen">Shop</button>
    <button id="logout">Logout</button>
    <span id="welcome">Welcome back, <b>${c.username}</b>!</span>
+   <span id="ajaxProgress">Working...</span>
 </div>
 
 <div id="dashboard" class="transparent">

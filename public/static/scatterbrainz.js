@@ -2,9 +2,12 @@ $(document).ready(function(){
 
     $.ajaxSetup({ cache: false });
 
+    $('#ajaxProgress').ajaxStart(function() { $(this).show(); })
+                      .ajaxStop(function() { $(this).hide(); });
+
     /**
-        * tablesorter and jquery UI sortable BS
-        */
+     * tablesorter and jquery UI sortable BS
+     */
 
     $('#playlist').tablesorter();
     $('#playlistbody').sortable({ axis: 'y', opacity: 0.6,
@@ -24,6 +27,10 @@ $(document).ready(function(){
             }
         }
     });
+    
+    $('li[rel=Playlist]').livequery(onTreeNodeCreate);
+    $('li[rel=Album]').livequery(onTreeNodeCreate);
+    
     $('#browser').tree({
         data : { 
             async : true,
@@ -35,10 +42,7 @@ $(document).ready(function(){
         callback : { 
             beforedata : function (n, t) {
                 return { id : $(n).attr("id") || 'init' };
-            },
-            
-            onopen : onTreeNodeOpen
-            
+            }
         },
         ui : {
             theme_name : 'default'
@@ -80,8 +84,8 @@ $(document).ready(function(){
     });
 
     /**
-        * make browser nodes draggable w/ jquery ui live shit
-        */
+     * make browser nodes draggable w/ jquery ui live shit
+     */
     $('li.browsenode').live("mouseover", function() {
         node = $(this);
         if (!node.data("init")) {
@@ -132,9 +136,13 @@ $(document).ready(function(){
     $("#prev").click(playListPrev);
     $("#next").click(playListNext);
     $("#play").click(function() {
-        $('#play').hide();
-        $('#pause').show();
-        $("#jquery_jplayer").jPlayer("play");
+        if (!$('.playing').length && $('.song').length) {
+            playRow($('.song:first'));
+        } else if ($('.playing').length) {
+            $('#play').hide();
+            $('#pause').show();
+            $("#jquery_jplayer").jPlayer("play");
+        }
     });
     $("#pause").click(function() {
         $('#play').show();
@@ -189,8 +197,8 @@ $(document).ready(function(){
     );
 
     /**
-        * Playlist interaction, shift click, ctrl click, del, etc
-        */
+     * Playlist interaction, shift click, ctrl click, del, etc
+     */
     $('.song').live('click', function(e) {
         $('.jp-playlist').focus();
         var self = $(this);
@@ -224,7 +232,7 @@ $(document).ready(function(){
     $('.jp-playlist').bind('keydown', 'del', function() {
         var next = $('.selected:last').next('tr');
         var prev = $('.selected:first').prev('tr');
-        $('.selected').remove();
+        $('.selected').not('.playing').remove();
         if (next.length) {
             next.addClass('selected').addClass('lastSelected');
         } else if (prev.length) {
@@ -256,8 +264,8 @@ $(document).ready(function(){
     });
 
     /**
-        * Dispatch clicks to fake floating table header over to real table header
-        */
+     * Dispatch clicks to fake floating table header over to real table header
+     */
     $('#playlistHeadTable th.artist').click(function() {
         $('#playlist th.artist').click();
     });
@@ -276,10 +284,19 @@ $(document).ready(function(){
     $('#playlistHeadTable th.bitrate').click(function() {
         $('#playlist th.bitrate').click();
     });
+    
+    /**
+     * Playlist functions
+     */
+    $('#playlistControlSave').click(savePlaylist);
+    $('#playlistControlClear').click(clearPlaylist);
+    $('#playlistControlTruncatePlayed').click(truncatePlayed);
+    $('#playlistControlTruncateUnplayed').click(truncateUnplayed);
+    $('#playlistControlRandomize').click(randomizePlaylist);
 
     /**
-        * initialize search
-        */
+     * initialize search
+     */
     $('#searchInput').keydown(function(e) {
         if(e.keyCode == 13) {
             searchHandler();
@@ -415,6 +432,10 @@ $(document).ready(function(){
     $('.searchAlbumButton').live('click', searchAlbumHandler);
     
     $('span.shopAlbumSearchLink').live('click', searchForShopAlbum);
+    
+    /* Initialize playlists */
+    $('div#switchBrowseMode').children('div').click(switchBrowseModeHandler);
+    initializePlaylistTree();
 });
 
 function switchWindow(self, runCallback) {
@@ -559,9 +580,7 @@ function searchCallback(results) {
             beforedata : function (n, t) {
                 if(n == false) t.settings.data.opts.static = results;
                 return { id : $(n).attr("id") || 'init' };
-            },
-            
-            onopen : onTreeNodeOpen
+            }
         },
         ui : {
             theme_name : 'default'
@@ -586,7 +605,7 @@ function searchCallback(results) {
             },
             'Artist': {
                 icon: {
-                    image: '/static/icons/person4small.gif'
+                    image: '/static/icons/artist.gif'
                 }
             },
             'Album': {
@@ -618,6 +637,24 @@ function onTreeNodeOpen(node, treeObj) {
     }
 }
 
+function onTreeNodeCreate() {
+    var self = $(this);
+    if (self.attr('rel') == 'Playlist') {
+        self.append($('<span>').addClass('albumYear').text(self.attr('owner')));
+    } else if (self.attr('rel') == 'Album') {
+        self.append($('<span>').addClass('albumYear').text(self.attr('year')));
+    }
+}
+
+function onPlaylistTreeLoad(thing, node) {
+    console.log($('li[rel=Playlist]'));
+    $.each($(node).find('li[rel=Playlist]'), function() {
+        var self = $(this);
+        self.append($('<span>').addClass('albumYear').text(self.attr('owner')));
+        console.log('done');
+    });
+}
+
 function ditchSearch() {
     $('#searchInput').attr('value', '');
     $('#browser').show();
@@ -646,6 +683,7 @@ function setDocumentTitle(title) {
 
 function stop() {
     $("#jquery_jplayer").jPlayer("stop");
+    $("#jquery_jplayer").jPlayer("setFile", '');
 }
 
 function play() {
@@ -654,7 +692,7 @@ function play() {
 
 function playlistNextPrev(next) {
     var playing = $('.playing');
-    if (playing) {
+    if (playing.length) {
         playing.removeClass('playing');
         if (next) {
             if (playing.next().hasClass('song')) {
@@ -675,6 +713,7 @@ function playlistNextPrev(next) {
             } else {
                 $('#play').show();
                 $('#pause').hide();
+                stop();
             }
         } else {
             if (playing.prev().hasClass('song')) {
@@ -683,6 +722,7 @@ function playlistNextPrev(next) {
             } else {
                 $('#play').show();
                 $('#pause').hide();
+                stop();
             }
         }
     }
@@ -708,6 +748,39 @@ function scrobbleTrack(id) {
         '/hello/scrobbleTrackAJAX',
         {'id':id}
     );
+}
+
+function savePlaylist() {
+    var playlistName = prompt('Enter playlist name:\n\n' +
+                              '* Re-saving a playlist created by you will overwrite it\n' +
+                              '* Re-saving a playlist as empty will delete it');
+    if (!playlistName) {
+        return;
+    }
+    var trackids = $.map($('tr.song'), function(e) {return $(e).attr('id');});
+    var trackidjson = JSON.stringify(trackids);
+    $.getJSON(
+        '/hello/savePlaylistAJAX',
+        {'name' : playlistName,
+         'trackids' : trackidjson},
+        reinitializePlaylistTree
+    );
+}
+
+function clearPlaylist() {
+    $('#playlistbody').children().not('.playing').remove();
+}
+
+function truncatePlayed() {
+    $('tr.playing').prevAll().remove();
+}
+
+function truncateUnplayed() {
+    $('tr.playing').nextAll().remove();
+}
+
+function randomizePlaylist() {
+    $('#playlistbody').shuffle();
 }
 
 function nextRandomTrack() {
@@ -843,7 +916,7 @@ function populatePlayingTrackInfo(row) {
 
 function openArtistNav() {
     var nowPlayingTrack = $('.playing');
-    if (!nowPlayingTrack) {
+    if (!nowPlayingTrack.length) {
         return;
     }
     var trackid = nowPlayingTrack.attr('id');
@@ -855,7 +928,9 @@ function openArtistNav() {
 }
 
 function populateArtistNavCallback(data) {
-    populateArtistNav(data['mbid']);
+    if ('mbid' in data) {
+        populateArtistNav(data['mbid']);
+    }
 }
     
 function populateArtistNav(artistMbid) {
@@ -1219,4 +1294,92 @@ function showShopStatuses(data) {
     
     setTimeout(refreshShopStatus, 10000);
 }
+
+function switchBrowseModeHandler() {
+    $('div.selectedBrowseMode').removeClass('selectedBrowseMode');
+    $(this).addClass('selectedBrowseMode');
+    if ($(this).attr('id') == 'playlistModeButton') {
+        $('div#browseContainer').hide();
+        $('div#playlistContainer').show();
+    } else {
+        $('div#browseContainer').show();
+        $('div#playlistContainer').hide();
+    }
+    $(window).resize();
+}
+
+function initializePlaylistTree() {
+    $('#playlistBrowser').tree({
+        data : { 
+            async : true,
+            type : 'json',
+            opts : {
+                url : '/hello/playlistBrowseAJAX'
+            }
+        },
+        callback : { 
+            beforedata : function (n, t) {
+                return { id : $(n).attr("id") || 'init' };
+            }
+            
+        },
+        ui : {
+            theme_name : 'default'
+        },
+        plugins : {
+            hotkeys : { }
+        },
+        types : {
+            'default' : {
+                clickable	: true,
+                renameable	: false,
+                deletable	: false,
+                creatable	: false,
+                draggable	: false,
+                max_children	: -1,
+                max_depth	: -1,
+                valid_children	: 'all',
+                icon : {
+                    image : false,
+                    position : false
+                }
+            },
+            'Playlist': {
+                icon: {
+                    image: '/static/icons/artist.gif'
+                }
+            },
+            'Track': {
+                icon: {
+                    image: '/static/icons/note2small.jpg'
+                }
+            }
+        }
+    });
+}
+
+function reinitializePlaylistTree() {
+    $('#playlistBrowser').tree('destroy').empty();
+    initializePlaylistTree();
+}
+
+(function($){
+  $.fn.shuffle = function() {
+    return this.each(function(){
+      var items = $(this).children();
+      return (items.length)
+        ? $(this).html($.shuffle(items))
+        : this;
+    });
+  }
+ 
+  $.shuffle = function(arr) {
+    for(
+      var j, x, i = arr.length; i;
+      j = parseInt(Math.random() * i),
+      x = arr[--i], arr[i] = arr[j], arr[j] = x
+    );
+    return arr;
+  }
+})(jQuery);
 

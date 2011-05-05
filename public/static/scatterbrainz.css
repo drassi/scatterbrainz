@@ -118,18 +118,17 @@ div#leftPane, div.jp-playlist-player, div.vsplitbar {
     top: 39px;
 }
 
-div#browseContainer {
+div#browseContainer, div#playlistContainer {
     width: 100%;
     position: absolute;
     overflow-y: auto;
     overflow-x: hidden;
     left: 0px;
-    top: 35px;
+    top: 54px;
     border: 3px solid #B0CDFF;
     border-right: 0px none;
     border-bottom-left-radius: 15px;
 }
-
 div#search {
     height: 32px;
     width: 100%;
@@ -174,6 +173,55 @@ input#searchInput {
 
 div#searchBrowser {
     display: none;
+}
+
+div#switchBrowseMode {
+    font-size: 11px;
+    height: 16px;
+    text-align: center;
+    border: 3px solid #B0CDFF;
+    width: 100%;
+}
+
+div#switchBrowseMode div {
+    float: left;
+    width: 48%;
+    padding: 2px;
+}
+
+div#switchBrowseMode div:hover {
+    background-color: #E0ECFF;
+    cursor: pointer;
+}
+
+div#switchBrowseMode div.selectedBrowseMode {
+    background-color: #E0ECFF;
+    font-weight: bold;
+}
+
+div#switchBrowseMode div:last-child {
+    border-left: 2px solid #B0CDFF;
+}
+
+
+div#playlistControls {
+    border-right: 3px solid #B0CDFF;
+    border-bottom: 3px solid #B0CDFF;
+    margin-left: 3px;
+    font-size: 12px;
+    text-align: center;
+}
+
+div#playlistControls div {
+    float: left;
+    padding: 4px 30px;
+    border-right: 2px solid #B0CDFF;
+}
+
+div#playlistControls div:hover {
+    background-color: #E0ECFF;
+    cursor: pointer;
+    font-style: italic;
 }
 
 .noBrowserFocusIndicator {
@@ -740,5 +788,12 @@ span.shopAlbumSearchLink {
 
 span#shopSearchStatus {
     font-weight: bold;
+}
+
+span#ajaxProgress {
+    font-weight: bold;
+    float: right;
+    margin-top: 5px;
+    margin-right: 20px;
 }
 

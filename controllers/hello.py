@@ -37,6 +37,7 @@ from scatterbrainz.model import artist_albums
 from scatterbrainz.model.musicbrainz import *
 from scatterbrainz.model.auth import User
 from scatterbrainz.model import ShopDownload
+from scatterbrainz.model import Playlist
 
 from scatterbrainz.config.config import Config
 from scatterbrainz.config.bonnaroo import Bonnaroo
@@ -82,10 +83,25 @@ class HelloController(BaseController):
             else:
                 raise Exception('bad type '+type)
     
+    def playlistBrowseAJAX(self):
+        idStr = request.params['id']
+        if idStr == 'init':
+            return self._allPlaylistsTreeJSON()
+        else:
+            [type, playlistid] = idStr.split('_',1)
+            if type == 'Playlist':
+                return self._tracksForPlaylistTreeJSON(playlistid)
+            else:
+                raise Exception('bad type '+type)
+    
     def _allArtistsTreeJSON(self):
         artists = Session.query(Artist).join(artist_albums).all()
         return self._dumpFlatJSON(artists, self._compareArtists)
-        
+    
+    def _allPlaylistsTreeJSON(self):
+        playlists = Session.query(Playlist).order_by(Playlist.name).all()
+        return self._dumpFlatJSON(playlists, None)
+    
     def _albumsForArtistTreeJSON(self, mbid):
         albums = Session.query(Artist).filter_by(mbid=mbid).one().albums
         albums.sort(self._compareAlbums)
@@ -106,6 +122,10 @@ class HelloController(BaseController):
     def _tracksForAlbumTreeJSON(self, mbid):
         tracks = Session.query(Album).filter_by(mbid=mbid).one().tracks
         tracks.sort(self._compareTracks)
+        return self._dumpFlatJSON(tracks, None)
+    
+    def _tracksForPlaylistTreeJSON(self, id):
+        tracks = self._getTracksForPlaylist(id)
         return self._dumpFlatJSON(tracks, None)
 
     def _compareTracks(self, a, b):
@@ -137,6 +157,8 @@ class HelloController(BaseController):
             return self._tracksForArtistPlaylistJSON(id)
         elif type == 'Album':
             return self._tracksForAlbumPlaylistJSON(id)
+        elif type == 'Playlist':
+            return self._tracksForPlaylistJSON(id)
         else:
             raise Exception('bad type '+type)
     
@@ -172,7 +194,7 @@ class HelloController(BaseController):
     
     def similarTrackAJAX(self):
         trackid = request.params['id'].split('_')[1]
-        artists = Session.query(MBArtist).join(MBArtistCreditName).join(MBArtistCredit).join(MBRecording).join(AudioFile).join(Track).filter(Track.id==trackid).all()
+        artists = Session.query(MBArtist).join(MBArtistCreditName, MBArtistCredit, MBRecording, AudioFile, AudioFile.track).filter(Track.id==trackid).all()
         similarMbids = set([])
         try:
             for artist in artists:
@@ -210,6 +232,22 @@ class HelloController(BaseController):
             albumtracks = album.tracks
             albumtracks.sort(self._compareTracks)
             tracks.extend(albumtracks)
+        return self._playlistJSON(tracks)
+
+    def _getTracksForPlaylist(self, id):
+        playlist = Session.query(Playlist).filter(Playlist.playlist_id==id).one()
+        recordings = playlist.tracks
+        recording_mbids = map(lambda x: x.gid, recordings)
+        tracks = Session.query(Track).filter(Track.mbid.in_(recording_mbids)).all()
+        tracks.sort(lambda a,b: cmp(recording_mbids.index(a.mbid), recording_mbids.index(b.mbid)))
+        filtertracks = [tracks[0]]
+        for track in tracks[1:]:
+            if track.mbid != filtertracks[-1].mbid:
+                filtertracks.append(track)
+        return filtertracks
+    
+    def _tracksForPlaylistJSON(self, id):
+        tracks = self._getTracksForPlaylist(id)
         return self._playlistJSON(tracks)
 
     def _playlistJSON(self, tracks):
@@ -470,13 +508,10 @@ class HelloController(BaseController):
     
     def _getArtistCreditNames(self, trackmbid):
         return Session.query(MBArtistCreditName) \
-                     .join(MBArtistCredit) \
-                     .join(MBRecording) \
-                     .join(AudioFile) \
-                     .join(Track) \
-                     .filter(Track.id==trackmbid) \
-                     .order_by(MBArtistCreditName.position) \
-                     .all()
+                      .join(MBArtistCredit, MBRecording, AudioFile, AudioFile.track) \
+                      .filter(Track.id==trackmbid) \
+                      .order_by(MBArtistCreditName.position) \
+                      .all()
     
     def _filterForEnglishWiki(self, url):
         return url.startswith('http://en.wikipedia.org')
@@ -767,6 +802,35 @@ class HelloController(BaseController):
         download = Session.query(ShopDownload).filter(ShopDownload.release_group_mbid==mbid).one()
         shopservice.clearimport(download)
         return 'OK'
+    
+    def savePlaylistAJAX(self):
+        playlistname = request.params['name']
+        trackids = simplejson.loads(request.params['trackids'])
+        trackids = map(lambda x: x.replace('track_',''), trackids)
+        results = Session.query(Track, MBRecording).join(MBRecording).filter(Track.id.in_(trackids)).all()
+        results.sort(lambda a,b: cmp(trackids.index(a[0].id), trackids.index(b[0].id)))
+        recordings = map(itemgetter(1), results)
+        Session.begin()
+        user_name = request.environ['repoze.what.credentials']['repoze.what.userid']
+        user_id = Session.query(User).filter(User.user_name==user_name).one().user_id
+        playlist = Session.query(Playlist) \
+                          .filter(Playlist.owner_id==user_id) \
+                          .filter(Playlist.name==playlistname) \
+                          .first()
+        if not trackids:
+            if playlist is None:
+                return '{}'
+            else:
+                Session.delete(playlist)
+        else:
+            if playlist is None:
+                playlist = Playlist(user_id, playlistname)
+                Session.add(playlist)
+            else:
+                playlist.modified = datetime.now()
+            playlist.tracks = recordings
+        Session.commit()
+        return '{}'
     
     def _mapify(self, urls):
         m = {}
