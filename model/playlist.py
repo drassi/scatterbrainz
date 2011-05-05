@@ -1,3 +1,5 @@
+import cgi
+
 from datetime import datetime
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -45,7 +47,7 @@ class Playlist(Base):
                                'rel'  : self.__class__.__name__,
                                'owner' : self.owner.user_name
                               },
-                'data': self.name,
+                'data': cgi.escape(self.name),
                 'state' : 'closed'
                }
         return json
