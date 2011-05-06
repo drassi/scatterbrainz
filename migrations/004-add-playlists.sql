@@ -1,5 +1,7 @@
+create sequence scatterbrainz_playlists_playlist_id_seq;
+
 create table scatterbrainz_playlists(
-    playlist_id integer not null,
+    playlist_id integer not null default nextval('scatterbrainz_playlists_playlist_id_seq'),
     owner_id integer not null,
     name character varying not null,
     created timestamp without time zone NOT NULL,
@@ -17,6 +19,4 @@ create table scatterbrainz_playlist_items (
     CONSTRAINT scatterbrainz_playlist_items_playlist_fkey FOREIGN KEY (playlist_id) REFERENCES scatterbrainz_playlists (playlist_id),
     CONSTRAINT scatterbrainz_playlist_items_recording_mbid_fkey FOREIGN KEY (track_id) REFERENCES recording (gid)
 );
-
-create sequence scatterbrainz_playlists_playlist_id_seq;
 
