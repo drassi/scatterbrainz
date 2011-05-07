@@ -622,27 +622,12 @@ function searchCallback(results) {
     });
 }
 
-function onTreeNodeOpen(node, treeObj) {
-    var node = $(node);
-    if (node.data('initialized')) {
-        return;
-    } else {
-        node.data('initialized',true);
-    }
-    if (node.attr('rel') == 'Artist') {
-        $.each(node.find('li[rel=Album]'), function() {
-            var self = $(this);
-            self.append($('<span>').addClass('albumYear').text(self.attr('year')));
-        });
-    }
-}
-
 function onTreeNodeCreate() {
     var self = $(this);
     if (self.attr('rel') == 'Playlist') {
-        self.append($('<span>').addClass('albumYear').text(self.attr('owner')));
+        self.prepend($('<span>').addClass('albumYear').text(self.attr('owner')));
     } else if (self.attr('rel') == 'Album') {
-        self.append($('<span>').addClass('albumYear').text(self.attr('year')));
+        self.prepend($('<span>').addClass('albumYear').text(self.attr('year')));
     }
 }
 
@@ -650,7 +635,7 @@ function onPlaylistTreeLoad(thing, node) {
     console.log($('li[rel=Playlist]'));
     $.each($(node).find('li[rel=Playlist]'), function() {
         var self = $(this);
-        self.append($('<span>').addClass('albumYear').text(self.attr('owner')));
+        self.prepend($('<span>').addClass('albumYear').text(self.attr('owner')));
         console.log('done');
     });
 }
