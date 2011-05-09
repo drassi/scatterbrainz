@@ -82,8 +82,11 @@ def download(Session, mbid, owner_id):
                                                 .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
                                                 .filter(MBReleaseGroup.gid==mbid) \
                                                 .one()
+        searchartist = artistname.name
+        if searchartist == 'Various Artists':
+            searchartist = ''
         url = searchurl + '?' + urllib.urlencode({
-                                    'artistname' : artistname.name,
+                                    'artistname' : searchartist,
                                     'groupname'  : albumname.name,
                                     'action'     : 'advanced',
                                     'format'     : 'MP3',
