@@ -100,7 +100,7 @@ def download(Session, mbid, owner_id):
         searchalbum = _cleanupSearchTerm(searchalbum)
         url = searchurl + '?' + urllib.urlencode({
                                     'artistname' : searchartist,
-                                    'groupname'  : albumname.name,
+                                    'groupname'  : searchalbum,
                                     'action'     : 'advanced',
                                     'format'     : 'MP3',
                                     'order_by'   : 'seeders'
