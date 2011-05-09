@@ -54,6 +54,16 @@ def login():
     log.info('[shop] login success!')
     maybeloggedin = True
 
+def _cleanupSearchTerm(s):
+    words = s.split()
+    newwords = []
+    for word in words:
+        while word and not word[-1].isalnum():
+            word = word[:-1]
+        if word:
+            newwords.append(word)
+    return ' '.join(newwords)
+
 """
 Search the shop for the given album.  Return torrent info hash, or None if album wasn't found
 """
@@ -83,8 +93,11 @@ def download(Session, mbid, owner_id):
                                                 .filter(MBReleaseGroup.gid==mbid) \
                                                 .one()
         searchartist = artistname.name
+        searchalbum = albumname.name
         if searchartist == 'Various Artists':
             searchartist = ''
+        searchartist = _cleanupSearchTerm(searchartist)
+        searchalbum = _cleanupSearchTerm(searchalbum)
         url = searchurl + '?' + urllib.urlencode({
                                     'artistname' : searchartist,
                                     'groupname'  : albumname.name,
