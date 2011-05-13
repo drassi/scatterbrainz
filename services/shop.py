@@ -62,7 +62,9 @@ def _cleanupSearchTerm(s):
             word = word[:-1]
         if word:
             newwords.append(word)
-    return ' '.join(newwords)
+    s = ' '.join(newwords)
+    s = s.replace('-', ' ')
+    return s
 
 """
 Search the shop for the given album.  Return torrent info hash, or None if album wasn't found
