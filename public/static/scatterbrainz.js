@@ -95,7 +95,7 @@ $(document).ready(function(){
                 appendTo: '#playlistbody',
                 cursorAt: {left: -1, top: -1},
                 helper: function(event) {
-                    return $('<span>' + event.target.text + '</span>');
+                    return $('<span>').text(event.target.text);
                 },
                 distance: 15
             });
