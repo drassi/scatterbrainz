@@ -744,7 +744,7 @@ function savePlaylist() {
     }
     var trackids = $.map($('tr.song'), function(e) {return $(e).attr('id');});
     var trackidjson = JSON.stringify(trackids);
-    $.getJSON(
+    $.post(
         '/hello/savePlaylistAJAX',
         {'name' : playlistName,
          'trackids' : trackidjson},
