@@ -667,7 +667,7 @@ class HelloController(BaseController):
             
         return simplejson.dumps({'albums' : albumjson, 'relationships' : rsordered})
 
-    def searchShopAJAX(self):
+    def _searchShopAJAX(self):
         artist = request.params['artist']
         album = request.params['album']
         mbid = request.params['mbid']
@@ -716,7 +716,7 @@ class HelloController(BaseController):
         truncated = len(results) == limit
         return simplejson.dumps({'albums':albums, 'truncated':truncated})
     
-    def searchShopAlbumAJAX(self):
+    def _searchShopAlbumAJAX(self):
         mbid = request.params['mbid']
         (album, albumname, artistname) = Session.query(MBReleaseGroup, MBReleaseName, MBArtistName) \
                                                 .join(MBReleaseName) \
@@ -732,37 +732,7 @@ class HelloController(BaseController):
             return simplejson.dumps({'success' : False})
     
     def checkDownloadStatusesAJAX(self):
-        # All current un-finished downloads
-        downloads = Session.query(ShopDownload) \
-                           .filter(ShopDownload.isdone==False) \
-                           .all()
         downloadjson = []
-        for download in downloads:
-            infohash = download.infohash
-            pctdone = shopservice.getPercentDone(infohash)
-            (album, albumname, artistname, rgmeta, rgtype) = \
-                    Session.query(MBReleaseGroup, MBReleaseName, MBArtistName, MBReleaseGroupMeta, MBReleaseGroupType) \
-                           .join(MBReleaseName) \
-                           .join(MBReleaseGroup.artistcredit, MBArtistCredit.name) \
-                           .outerjoin(MBReleaseGroupMeta) \
-                           .outerjoin(MBReleaseGroupType) \
-                           .filter(MBReleaseGroup.gid==download.release_group_mbid) \
-                           .one()
-            if rgmeta and rgmeta.year:
-                year = rgmeta.year
-            else:
-                year = '?'
-            if rgtype and rgtype.name:
-                rtype = rgtype.name
-            else:
-                rtype = 'Unknown'
-            downloadjson.append({'percent' : pctdone,
-                                 'mbid'   : album.gid,
-                                 'album'  : albumname.name,
-                                 'artist' : artistname.name,
-                                 'year'   : year,
-                                 'type'   : rtype})
-        downloadjson.sort(key=itemgetter('percent'))
         # Everyone's recently finished downloads
         finished = Session.query(ShopDownload, User) \
                           .join(User) \
