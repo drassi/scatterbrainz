@@ -39,6 +39,7 @@ loginpath = 'login.php'
 loginurl = shopbaseurl + '/' + loginpath
 searchurl = shopbaseurl + '/torrents.php'
 maybeloggedin = False
+searchstopwords = ['and', 'the', 'ep']
 
 def login():
     global maybeloggedin
@@ -60,7 +61,7 @@ def _cleanupSearchTerm(s):
     for word in words:
         while word and not word[-1].isalnum():
             word = word[:-1]
-        if word:
+        if word and word.lower() not in searchstopwords:
             newwords.append(word)
     s = ' '.join(newwords)
     s = s.replace('-', ' ')
