@@ -39,7 +39,7 @@ loginpath = 'login.php'
 loginurl = shopbaseurl + '/' + loginpath
 searchurl = shopbaseurl + '/torrents.php'
 maybeloggedin = False
-searchstopwords = ['and', 'the', 'ep']
+searchstopwords = ['and', 'the', 'ep', 'e.p.']
 
 def login():
     global maybeloggedin
