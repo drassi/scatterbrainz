@@ -376,8 +376,7 @@ $(document).ready(function(){
     setTimeout(function() {
         $("body").splitter({
             'sizeLeft' : true,
-            'cursor'   : 'col-resize',
-            'resizeToWidth' : true
+            'cursor'   : 'col-resize'
         });
         $(window).resize();
     }, 100);
