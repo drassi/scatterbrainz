@@ -9,6 +9,8 @@ from pylons.middleware import ErrorHandler, StatusCodeRedirect
 from pylons.wsgiapp import PylonsApp
 from routes.middleware import RoutesMiddleware
 
+from oboeware import OboeMiddleware
+
 from scatterbrainz.lib.auth import add_auth
 from scatterbrainz.config.environment import load_environment
 
@@ -45,6 +47,7 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     app = RoutesMiddleware(app, config['routes.map'])
     app = SessionMiddleware(app, config)
     app = CacheMiddleware(app, config)
+    app = OboeMiddleware(app, config)
 
     # CUSTOM MIDDLEWARE HERE (filtered by error handling middlewares)
     app = add_auth(app)
