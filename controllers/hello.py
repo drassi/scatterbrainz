@@ -447,7 +447,7 @@ class HelloController(BaseController):
                         .first()
         if amazon:
             json['amazon'] = amazon.url
-        json['musicbrainz'] = 'http://test.musicbrainz.org/release-group/' + albumMbid
+        json['musicbrainz'] = 'http://musicbrainz.org/release-group/' + albumMbid
         return simplejson.dumps(json)
     
     def getArtistInfoAJAX(self):
@@ -495,7 +495,7 @@ class HelloController(BaseController):
             json['youtube'] = urls['youtube'][0]
         if 'official homepage' in urls:
             json['official'] = urls['official homepage'][0]
-        json['musicbrainz'] = 'http://test.musicbrainz.org/artist/' + artistMbid
+        json['musicbrainz'] = 'http://musicbrainz.org/artist/' + artistMbid
         return simplejson.dumps(json)
     
     def getArtistFromTrackAJAX(self):
