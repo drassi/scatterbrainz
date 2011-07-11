@@ -697,7 +697,18 @@ class _ThreadedCall(threading.Thread):
                 self.callback(self.sender, output, *self.callback_args)
             else:
                 self.callback(self.sender, output)
-    
+
+def _logCallback(func, f_args, f_kwargs, res):
+    self = f_args[0]
+    data = self._postDataToStr()
+    (HOST_NAME, HOST_SUBDIR) = self.network.ws_server
+    return {'url' : HOST_NAME + HOST_SUBDIR, 'data' : data,
+             'IsService' : True,
+             'RemoteProtocol' : 'http',
+             'RemoteHost' : HOST_NAME,
+             'RemoteController' : 'last.fm',
+             'ServiceArg' : HOST_SUBDIR + data}
+
 class _Request(object):
     """Representing an abstract web service operation."""
     
@@ -768,7 +779,16 @@ class _Request(object):
         """Returns True if the request is already in cache."""
         
         return self.cache.has_key(self._get_cache_key())
-        
+   
+    def _postDataToStr(self): 
+        data = []
+        for name in self.params.keys():
+            data.append('='.join((name, urllib.quote_plus(_string(self.params[name])))))
+        data = '&'.join(data)
+        return data
+
+    import oboe
+    @oboe.log_method('asdf', agent='remote_request', backtrace=True, callback=_logCallback)
     def _download_response(self):
         """Returns a response body string from the server."""
         
