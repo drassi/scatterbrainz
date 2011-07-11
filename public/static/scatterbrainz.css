@@ -467,7 +467,12 @@ div#nowPlayingAlbumContainer {
 
 img#nowPlayingAlbumArtImage {
     max-width: 100%;
+    max-height: 70%;
     -webkit-box-shadow: #666 2px 2px 3px;
+}
+
+a#nowPlayingAlbumArtImageLink {
+    text-align: center;
 }
 
 div#nowPlayingAlbumInfo {
