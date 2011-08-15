@@ -145,8 +145,7 @@ def download(Session, mbid, owner_id):
                 releases[mbid] = [data]
         for releaseid in releases.keys():
             release = releases[releaseid]
-            release.sort(key=itemgetter('disc'))
-            release.sort(key=itemgetter('num'))
+            release.sort(key=itemgetter('disc', 'num'))
         log.info('[shop] release group ' + mbid + ' has ' + str(len(releases)) + ' releases to check against')
         
         # Try to match any of the releases with the first few results
@@ -179,7 +178,7 @@ def download(Session, mbid, owner_id):
                     filename = tr.cssselect('td')[0].text
                     if filename.lower().endswith('.mp3'):
                         filenames.append({'original' : filename,
-                                          'compare' : filename.split('/')[-1][:-4].lower()})
+                                          'compare' : re.sub(' +', '', filename.split('/')[-1][:-4].lower()}))
                 downloads.append({'seeders' : numseeders, 'torrentid' : torrentid, 'url' : downloadurl, 'filenames' : filenames})
             if not downloads:
                 log.info('[shop] no seeded files of correct type found at torrent ' + torrentid)
@@ -324,8 +323,7 @@ def importDownload(shopdownload):
             track = Track(unicode(stableid), None, recording.gid, mbalbum.gid, unicode(name.name), track.position, medium.position, albumname, artistname)
             tracks.append(track)
             Session.add(track)
-        tracks.sort(key=attrgetter('discnum'))
-        tracks.sort(key=attrgetter('tracknum'))
+        tracks.sort(key=attrgetter('discnum', 'tracknum'))
         assert len(promisedfiles) == len(tracks), 'len(promisedfiles=' + promisedfiles.__repr__() + ') != len(tracks=' + tracks.__repr__() + ')'
         promisedfilemap = {}
         for i in range(len(tracks)):
