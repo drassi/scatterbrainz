@@ -178,7 +178,7 @@ def download(Session, mbid, owner_id):
                     filename = tr.cssselect('td')[0].text
                     if filename.lower().endswith('.mp3'):
                         filenames.append({'original' : filename,
-                                          'compare' : re.sub(' +', '', filename.split('/')[-1][:-4].lower()}))
+                                          'compare' : re.sub(' +', '', filename.split('/')[-1][:-4].lower())})
                 downloads.append({'seeders' : numseeders, 'torrentid' : torrentid, 'url' : downloadurl, 'filenames' : filenames})
             if not downloads:
                 log.info('[shop] no seeded files of correct type found at torrent ' + torrentid)
