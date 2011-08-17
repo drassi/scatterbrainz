@@ -38,6 +38,7 @@ from scatterbrainz.model.musicbrainz import *
 from scatterbrainz.model.auth import User
 from scatterbrainz.model import ShopDownload
 from scatterbrainz.model import Playlist
+from scatterbrainz.model import TrackPlay
 
 from scatterbrainz.config.config import Config
 from scatterbrainz.config.bonnaroo import Bonnaroo
@@ -379,18 +380,19 @@ class HelloController(BaseController):
     def getLyricsAJAX(self):
         trackid = request.params['trackid'].split('_')[1]
         track = Session.query(Track).filter_by(id=trackid).one()
+        ip = request.environ['REMOTE_ADDR']
+        user_name = request.environ['repoze.what.credentials']['repoze.what.userid']
+        user = Session.query(User).filter(User.user_name==user_name).one()
+        Session.begin()
+        play = TrackPlay(track.mbid, user, ip)
+        Session.add(play)
+        Session.commit()
         lyrics = lyricsservice.get_lyrics(Session, track)
         if lyrics:
             return simplejson.dumps({'lyrics' : lyrics})
         else:
             return '{}'
     
-    def scrobbleTrackAJAX(self):
-        trackid = request.params['id'].split('_')[1]
-        track = Session.query(Track).filter_by(id=trackid).one()
-        if track.mp3length >= 30:
-            self.scrobbler.scrobble(track.id3artist, track.id3title, int(time.time()) - track.mp3length, pylast.SCROBBLE_SOURCE_USER, pylast.SCROBBLE_MODE_PLAYED, track.mp3length, track.id3album, track.getTrackNum())
-
     def getArtistImagesAJAX(self):
         if 'trackid' in request.params:
             trackid = request.params['trackid'].split('_')[1]

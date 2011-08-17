@@ -1,0 +1,41 @@
+<table>
+ <thead>
+  <tr>
+   <th>User</th>
+   <th>Plays ever</th>
+   <th>Plays 7 days</th>
+   <th>Plays 24 hours</th>
+   <th>Plays 1 hour</th>
+   <th>Distinct IPs ever</th>
+   <th>Distinct IPs 7 days</th>
+   <th>Distinct IPs 24 hours</th>
+   <th>Distinct IPs 1 hour</th>
+  </tr>
+ </thead>
+ <tbody>
+  <tr>
+   <td>All</td>
+   <td>${c.playsEver}</td>
+   <td>${c.plays7d}</td>
+   <td>${c.plays24h}</td>
+   <td>${c.plays1h}</td>
+   <td>${c.ipsEver}</td>
+   <td>${c.ips7d}</td>
+   <td>${c.ips24h}</td>
+   <td>${c.ips1h}</td>
+  </tr>
+ % for stat in c.stats:
+  <tr>
+   <td>${stat['user']}</td>
+   <td>${stat['countEver']}</td>
+   <td>${stat['count7d']}</td>
+   <td>${stat['count24h']}</td>
+   <td>${stat['count1h']}</td>
+   <td>${stat['ipEver']}</td>
+   <td>${stat['ip7d']}</td>
+   <td>${stat['ip24h']}</td>
+   <td>${stat['ip1h']}</td>
+  </tr>
+ % endfor
+ </tbody>
+</table>

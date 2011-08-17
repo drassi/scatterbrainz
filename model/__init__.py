@@ -34,6 +34,7 @@ from scatterbrainz.model.shopdownload import ShopDownload
 from scatterbrainz.model.shopdownloadattempt import ShopDownloadAttempt
 from scatterbrainz.model.playlistitem import PlaylistItem
 from scatterbrainz.model.playlist import Playlist
+from scatterbrainz.model.trackplay import TrackPlay
 
 PGUuid = postgres.PGUuid
 
@@ -45,4 +46,5 @@ artist_albums = sa.Table('scatterbrainz_artist_albums', meta.metadata,
 Artist.albums = orm.relation(Album, secondary=artist_albums, backref='artists')
 Album.tracks = orm.relation(Track, backref='album')
 Track.file = orm.relation(AudioFile, backref='track')
+TrackPlay.track = orm.relation(MBRecording, backref='plays')
 
