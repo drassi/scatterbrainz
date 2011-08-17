@@ -127,8 +127,6 @@ $(document).ready(function(){
         $('#loaderBar').progressbar('option', 'value', lpInt);
         $('#sliderPlayback').slider('option', 'value', ppaInt);
 
-        //jpPlayTime.text($.jPlayer.convertTime(playedTime));
-        //jpTotalTime.text($.jPlayer.convertTime(totalTime));
     });
     
     audio = $('#jquery_jplayer').data('jPlayer.config').audio;
@@ -396,10 +394,6 @@ $(document).ready(function(){
     /** Shop **/
     $('form#shopSearchForm').submit(shopSearchSubmit);
     
-    if (window.location.hash == "#scrobble") {
-        alert('scrobbling..');
-    }
-    
     screenMappings = {
         'playlistNav' : {'selector' : $('.browsePane, #browsePaneSplitter')},
         'nowPlayingNav' : {'selector' : $('#nowPlayingContainer')},
@@ -435,6 +429,13 @@ $(document).ready(function(){
     /* Initialize playlists */
     $('div#switchBrowseMode').children('div').click(switchBrowseModeHandler);
     initializePlaylistTree();
+
+    /* Create events for scrobbler */
+    startPlayEvent = document.createEvent('Event');
+    startPlayEvent.initEvent('startPlayEvent', true, true);
+    endPlayEvent = document.createEvent('Event');
+    endPlayEvent.initEvent('endPlayEvent', true, true);
+
 });
 
 function switchWindow(self, runCallback) {
@@ -650,15 +651,29 @@ String.prototype.trim = function() {
 }
 
 function playRow(row) {
+    scrobbleEnd();
     $('.playing').removeClass('playing');
-    $("#jquery_jplayer").jPlayer("setFile", row.attr('href'))
-        .jPlayer("play");
+    $("#jquery_jplayer").jPlayer("setFile", row.attr('href')).jPlayer("play");
     row.addClass('playing');
-    setDocumentTitle($('.artist', row).text() + ' - ' +
-        $('.title', row).text());
+    var artist = row.find('.artist').text();
+    var title = row.find('.title').text();
+    var min = Number(row.find('.length').text().split(':')[0]);
+    var sec = Number(row.find('.length').text().split(':')[1]);
+    var duration = min * 60 + sec;
+    setDocumentTitle(artist + ' - ' + title);
     populatePlayingTrackInfo(row);
     $('#play').hide();
     $('#pause').show();
+    $('#scrobbleArtist').text(artist);
+    $('#scrobbleTrack').text(title);
+    $('#scrobbleDuration').text(duration);
+    document.dispatchEvent(startPlayEvent);
+}
+
+function scrobbleEnd() {
+    if ($('.playing').length) {
+        document.dispatchEvent(endPlayEvent);
+    }
 }
 
 function setDocumentTitle(title) {
@@ -666,6 +681,8 @@ function setDocumentTitle(title) {
 }
 
 function stop() {
+    scrobbleEnd();
+    $('.playing').removeClass('playing');
     $("#jquery_jplayer").jPlayer("stop");
     $("#jquery_jplayer").jPlayer("setFile", '');
 }
@@ -677,10 +694,8 @@ function play() {
 function playlistNextPrev(next) {
     var playing = $('.playing');
     if (playing.length) {
-        playing.removeClass('playing');
         if (next) {
             if (playing.next().hasClass('song')) {
-                playing.next().addClass('playing');
                 playRow(playing.next());
             } else if ($('#playlistRepeat').attr('checked')) {
                 $('.song:first').dblclick();
@@ -701,7 +716,6 @@ function playlistNextPrev(next) {
             }
         } else {
             if (playing.prev().hasClass('song')) {
-                playing.prev().addClass('playing');
                 playRow(playing.prev());
             } else {
                 $('#play').show();
@@ -721,17 +735,7 @@ function playListNext() {
 }
 
 function playListNextAndScrobble() {
-    if (window.location.hash == "#scrobble") {
-        scrobbleTrack($('.playing').attr('id'));
-    }
     playListNext();
-}
-
-function scrobbleTrack(id) {
-    $.getJSON(
-        '/hello/scrobbleTrackAJAX',
-        {'id':id}
-    );
 }
 
 function savePlaylist() {
