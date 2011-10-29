@@ -30,9 +30,9 @@ function playerShowTracks(data)
 	link.append(br)
 	le.append(link)
 	ue.append(le)
-	
+
     });
-    
+
     $(tldiv).append(ue)
 
     //newdiv=$(tldiv).makeacolumnlists({cols: 3, colWidth: 0, equalHeight: 'li', startN: 1});
@@ -46,7 +46,7 @@ function playerShowTracks(data)
     });
 
     $('a[name|=trklisting]').click(function() {
-	$.getJSON("/getlocal/trackArtistAlbumsLOCAL",{trackid:$(this).attr("id")},playerShowRelatedAlbums);	
+	$.getJSON("/getlocal/trackArtistAlbumsLOCAL",{trackid:$(this).attr("id")},playerShowRelatedAlbums);
 	$.getJSON("/getlocal/trackArtistAlbumsMB",{trackid:$(this).attr("id")},playerShowRelatedMB);
 	return(playTrack($(this).attr('title'),$(this).text()  ));
     });
@@ -59,7 +59,7 @@ function playerShowRelatedAlbums(data){
 	ue.append(le);
     });
     $("#rel_albums").children().remove();
-    $("#rel_albums").append(ue); 
+    $("#rel_albums").append(ue);
 
 }
 function playerShowRelatedMB(data){
@@ -70,16 +70,16 @@ function playerShowRelatedMB(data){
 	ue.append(le);
     });
     $("#mb_albums").children().remove();
-    $("#mb_albums").append(ue); 
+    $("#mb_albums").append(ue);
 
 }
 function playerShowTrackRelations(data){
-   
+
     ue=$("<ul>");
 
     le=$("<li>");
     le.html("Track Relations:");//+item['year']);
-    ue.append(le);    
+    ue.append(le);
 
     $.each(data['track_relations'],function(i,item){
 	le=$("<li>");
@@ -92,14 +92,14 @@ function playerShowTrackRelations(data){
 	ue.append(le);
     });
     $("#track_relations").children().remove();
-    $("#track_relations").append(ue);     
+    $("#track_relations").append(ue);
 }
 function playerShowBandMembers(data){
     ue=$("<ul>")
 
     le=$("<li>");
     le.html("Current Members");//+item['year']);
-    ue.append(le);    
+    ue.append(le);
 
     $.each(data['current_members'],function(i,item){
 	le=$("<li>");
@@ -109,7 +109,7 @@ function playerShowBandMembers(data){
 
     le=$("<li>");
     le.html("Past Members");//+item['year']);
-    ue.append(le);    
+    ue.append(le);
 
     $.each(data['past_members'],function(i,item){
 	le=$("<li>");
@@ -118,5 +118,5 @@ function playerShowBandMembers(data){
     });
 
     $("#track_relations").children().remove();
-    $("#track_relations").append(ue);         
+    $("#track_relations").append(ue);
 }

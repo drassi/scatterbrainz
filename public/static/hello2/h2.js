@@ -8,7 +8,7 @@ $(document).ready(function(){
    });
 
     $('#browser').tree({
-        data : { 
+        data : {
             async : true,
             type : 'json',
             opts : {
@@ -54,6 +54,6 @@ $(document).ready(function(){
         }
     });
 
- 
+
 
 });

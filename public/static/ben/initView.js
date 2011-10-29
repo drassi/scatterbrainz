@@ -53,8 +53,8 @@ function viewHeight(){
 }
 
 function initShared(){
-    var headID = document.getElementsByTagName("head")[0];         
-    var cssNode = document.createElement('link');  
+    var headID = document.getElementsByTagName("head")[0];
+    var cssNode = document.createElement('link');
     cssNode.type = 'text/css';
     cssNode.rel = 'stylesheet';
     cssNode.href = '/ben/display2.css';
@@ -65,8 +65,8 @@ function initShared(){
 
 
 function initSmallView(){
-    var headID = document.getElementsByTagName("head")[0];             
-    var meta =  document.createElement('meta');  
+    var headID = document.getElementsByTagName("head")[0];
+    var meta =  document.createElement('meta');
     meta.name="viewport";
     meta.content="width=device-width,minimum-scale=1.0, maximum-scale=1.0";
     headID.appendChild(meta);

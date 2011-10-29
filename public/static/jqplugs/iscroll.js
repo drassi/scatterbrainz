@@ -1,14 +1,14 @@
 /**
- * 
+ *
  * Find more about the scrolling function at
  * http://cubiq.org/scrolling-div-for-mobile-webkit-turns-3/16
  *
  * Copyright (c) 2009 Matteo Spinelli, http://cubiq.org/
  * Released under MIT license
  * http://cubiq.org/dropbox/mit-license.txt
- * 
+ *
  * Version 3.0beta4 - Last updated: 2010.04.02
- * 
+ *
  */
 
 function iScroll (el, options) {
@@ -28,7 +28,7 @@ function iScroll (el, options) {
 		hScrollBar: true,
 		vScrollBar: true
 	};
-	
+
 	if (typeof options == 'object') {
 		for (var i in options) {
 			this.options[i] = options[i];
@@ -36,7 +36,7 @@ function iScroll (el, options) {
 	}
 
 	this.refresh();
-	
+
 	this.element.addEventListener('touchstart', this);
 	this.element.addEventListener('touchmove', this);
 	this.element.addEventListener('touchend', this);
@@ -68,7 +68,7 @@ iScroll.prototype = {
 
 		// Update horizontal scrollbar
 		if (this.options.hScrollBar && this.scrollX) {
-			this.scrollBarX = new scrollbar('horizontal', this.wrapper);			
+			this.scrollBarX = new scrollbar('horizontal', this.wrapper);
 			this.scrollBarX.init(this.scrollWidth, this.element.offsetWidth);
 		} else if (this.scrollBarX) {
 			this.scrollBarX = this.scrollBarX.remove();
@@ -76,7 +76,7 @@ iScroll.prototype = {
 
 		// Update vertical scrollbar
 		if (this.options.vScrollBar && this.scrollY) {
-			this.scrollBarY = new scrollbar('vertical', this.wrapper);			
+			this.scrollBarY = new scrollbar('vertical', this.wrapper);
 			this.scrollBarY.init(this.scrollHeight, this.element.offsetHeight);
 		} else if (this.scrollBarY) {
 			this.scrollBarY = this.scrollBarY.remove();
@@ -91,7 +91,7 @@ iScroll.prototype = {
 		return this._y;
 	},
 
-	setPosition: function (x, y) { 
+	setPosition: function (x, y) {
 		this._x = x !== null ? x : this._x;
 		this._y = y !== null ? y : this._y;
 
@@ -105,7 +105,7 @@ iScroll.prototype = {
 			this.scrollBarY.setPosition(this.scrollBarY.maxScroll / this.maxScrollY * this._y);
 		}
 	},
-		
+
 	onTouchStart: function(e) {
 	    if (e.targetTouches.length != 1) {
 	        return false;
@@ -113,9 +113,9 @@ iScroll.prototype = {
 
 		e.preventDefault();
 		e.stopPropagation();
-		
+
 		this.element.style.webkitTransitionDuration = '0';
-		
+
 		if (this.scrollBarX) {
 			this.scrollBarX.bar.style.webkitTransitionDuration = '0, 250ms';
 		}
@@ -133,12 +133,12 @@ iScroll.prototype = {
 		this.scrollStartX = this.x;
 
 		this.touchStartY = e.touches[0].pageY;
-		this.scrollStartY = this.y;			
+		this.scrollStartY = this.y;
 
 		this.scrollStartTime = e.timeStamp;
 		this.moved = false;
 	},
-	
+
 	onTouchMove: function(e) {
 		if (e.targetTouches.length != 1) {
 			return false;
@@ -147,11 +147,11 @@ iScroll.prototype = {
 		var leftDelta = this.scrollX === true ? e.touches[0].pageX - this.touchStartX : 0;
 		var topDelta = this.scrollY === true ? e.touches[0].pageY - this.touchStartY : 0;
 
-		if (this.x > 0 || this.x < this.maxScrollX) { 
+		if (this.x > 0 || this.x < this.maxScrollX) {
 			leftDelta = Math.round(leftDelta / 4);		// Slow down if outside of the boundaries
 		}
 
-		if (this.y > 0 || this.y < this.maxScrollY) { 
+		if (this.y > 0 || this.y < this.maxScrollY) {
 			topDelta = Math.round(topDelta / 4);		// Slow down if outside of the boundaries
 		}
 
@@ -175,7 +175,7 @@ iScroll.prototype = {
 			this.scrollStartTime = e.timeStamp;
 		}
 	},
-	
+
 	onTouchEnd: function(e) {
 		if (e.targetTouches.length > 0) {
 			return false;
@@ -184,10 +184,10 @@ iScroll.prototype = {
 		if (!this.moved) {
 			var theEvent = document.createEvent('MouseEvents');
 			theEvent.initMouseEvent("click", true, true, document.defaultView, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null);
-			e.changedTouches[0].target.dispatchEvent(theEvent);		
+			e.changedTouches[0].target.dispatchEvent(theEvent);
 			return false;
 		}
-		
+
 		var time = e.timeStamp - this.scrollStartTime;
 
 		var momentumX = this.scrollX === true
@@ -219,13 +219,13 @@ iScroll.prototype = {
 
 		// Move the scrollbars
 		if (this.scrollBarX) {
-			this.scrollBarX.scrollTo(this.scrollBarX.maxScroll / this.maxScrollX * newPositionX, newDuration + 'ms');	
-		}		
+			this.scrollBarX.scrollTo(this.scrollBarX.maxScroll / this.maxScrollX * newPositionX, newDuration + 'ms');
+		}
 		if (this.scrollBarY) {
 			this.scrollBarY.scrollTo(this.scrollBarY.maxScroll / this.maxScrollY * newPositionY, newDuration + 'ms');
 		}
 	},
-	
+
 	onTransitionEnd: function () {
 		this.element.removeEventListener('webkitTransitionEnd', this);
 		this.resetPosition();
@@ -254,7 +254,7 @@ iScroll.prototype = {
 
 			if (this.scrollBarX) {
 				this.scrollBarX.scrollTo(this.scrollBarX.maxScroll / this.maxScrollX * (resetX || this.x), '500ms');
-			}			
+			}
 			if (this.scrollBarY) {
 				this.scrollBarY.scrollTo(this.scrollBarY.maxScroll / this.maxScrollY * (resetY || this.y), '500ms');
 			}
@@ -273,7 +273,7 @@ iScroll.prototype = {
 		var speed = Math.abs(dist) / time * 1000;
 		var newDist = speed * speed / (20 * friction) / 1000;
 
-		// Proportinally reduce speed if we are outside of the boundaries 
+		// Proportinally reduce speed if we are outside of the boundaries
 		if (dist > 0 && maxDist1 !== undefined && newDist > maxDist1) {
 			speed = speed * maxDist1 / newDist;
 			newDist = maxDist1;
@@ -282,9 +282,9 @@ iScroll.prototype = {
 			speed = speed * maxDist2 / newDist;
 			newDist = maxDist2;
 		}
-		
+
 		newDist = newDist * (dist < 0 ? -1 : 1);
-		
+
 		var newTime = -speed / -deceleration;
 		if (newTime < 1) {	// We can't go back in time
 			newTime = 1;
@@ -313,7 +313,7 @@ scrollbar.prototype = {
 	maxSize: 0,
 	maxScroll: 0,
 	visible: false,
-	
+
 	init: function (scroll, size) {
 		var offset = this.dir == 'horizontal' ? this.bar.offsetWidth - this.bar.clientWidth : this.bar.offsetHeight - this.bar.clientHeight;
 		this.maxSize = scroll - 8;		// 8 = distance from top + distance from bottom
@@ -321,7 +321,7 @@ scrollbar.prototype = {
 		this.maxScroll = this.maxSize - this.size;
 		this.bar.style[this.dir == 'horizontal' ? 'width' : 'height'] = (this.size - offset) + 'px';
 	},
-	
+
 	setPosition: function (pos) {
 		if (pos < 0) {
 			pos = 0;
@@ -332,12 +332,12 @@ scrollbar.prototype = {
 		pos = this.dir == 'horizontal' ? 'translate3d(' + Math.round(pos) + 'px,0,0)' : 'translate3d(0,' + Math.round(pos) + 'px,0)';
 		this.bar.style.webkitTransform = pos;
 	},
-	
+
 	scrollTo: function (pos, runtime) {
 		this.bar.style.webkitTransitionDuration = (runtime || '400ms') + ',250ms';
 		this.setPosition(pos);
 	},
-	
+
 	show: function () {
 		this.visible = true;
 		this.bar.style.opacity = '1';
@@ -347,7 +347,7 @@ scrollbar.prototype = {
 		this.visible = false;
 		this.bar.style.opacity = '0';
 	},
-	
+
 	remove: function () {
 		this.bar.parentNode.removeChild(this.bar);
 		return null;
