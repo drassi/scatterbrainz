@@ -18,12 +18,12 @@
     overflow:hidden;
 }
 
-#tracklist li { 
+#tracklist li {
     overflow:hidden;
     width:20em;
     line-height:2ex;
     height:2ex;
-    
+
 }
 
 #plpl  span {

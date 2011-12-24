@@ -27,19 +27,19 @@ $(document).ready(function(){
             }
         }
     });
-    
+
     $('li[rel=Playlist]').livequery(onTreeNodeCreate);
     $('li[rel=Album]').livequery(onTreeNodeCreate);
-    
+
     $('#browser').tree({
-        data : { 
+        data : {
             async : true,
             type : 'json',
             opts : {
                 url : '/hello/treeBrowseAJAX'
             }
         },
-        callback : { 
+        callback : {
             beforedata : function (n, t) {
                 return { id : $(n).attr("id") || 'init' };
             }
@@ -101,7 +101,7 @@ $(document).ready(function(){
             });
         }
     });
-    
+
     $('li.browsenode[rel=Track]').live('dblclick', function () {
         var self = $(this);
         addToPlaylist(self.attr('id'));
@@ -128,7 +128,7 @@ $(document).ready(function(){
         $('#sliderPlayback').slider('option', 'value', ppaInt);
 
     });
-    
+
     audio = $('#jquery_jplayer').data('jPlayer.config').audio;
 
     $("#prev").click(playListPrev);
@@ -282,7 +282,7 @@ $(document).ready(function(){
     $('#playlistHeadTable th.bitrate').click(function() {
         $('#playlist th.bitrate').click();
     });
-    
+
     /**
      * Playlist functions
      */
@@ -333,16 +333,16 @@ $(document).ready(function(){
     $('#playMode').click(function() {
         $('#playModeMenu').toggle();
     });
-    
+
     $('#playModeMenu input').click(function() {
         $("#playMode .ui-button-text").text($(this).next().text());
         $('#playModeMenu').hide();
     });
-    
+
     $('#playModeContainer').mouseleave(function() {
         $('#playModeMenu').hide();
     });
-    
+
     $('#arepeat').button();
     $('#brepeat').button();
     $('#cancelrepeat').button();
@@ -370,7 +370,7 @@ $(document).ready(function(){
         $(this).hide();
         $('#arepeat').show();
     });
-    
+
     setTimeout(function() {
         $("body").splitter({
             'sizeLeft' : true,
@@ -378,7 +378,7 @@ $(document).ready(function(){
         });
         $(window).resize();
     }, 100);
-    
+
     var idsearch = window.location.href.match(/id=.*\/\d+/);
     if (idsearch != null) {
         var id = idsearch[0].split('=')[1];
@@ -390,10 +390,10 @@ $(document).ready(function(){
             }
         );
     }
-    
+
     /** Shop **/
     $('form#shopSearchForm').submit(shopSearchSubmit);
-    
+
     screenMappings = {
         'playlistNav' : {'selector' : $('.browsePane, #browsePaneSplitter')},
         'nowPlayingNav' : {'selector' : $('#nowPlayingContainer')},
@@ -402,30 +402,30 @@ $(document).ready(function(){
         'shopNav' : {'selector' : $('#shopContainer')
                     , 'callback' : refreshShopStatus}
     };
-    
+
     $('div#navigation button.screen').click(function() {
         switchWindow($(this), true);
     });
-    
+
     $('button#logout').click(function() {
         window.location = '/logout_handler';
     });
-    
+
     $('a.artistLink').live('click', clickArtistLink);
-    
+
     $('.albumToggle').change(toggleAlbumVisibility);
     $('#albumCheckbox').data('type', 'Album');
     $('#epCheckbox').data('type', 'EP');
     $('#liveCheckbox').data('type', 'Live');
     $('#compilationCheckbox').data('type', 'Compilation');
     $('#otherCheckbox').data('type', 'Other');
-    
+
     $('.playAlbumButton').live('click', playAlbumHandler);
     $('.queueAlbumButton').live('click', queueAlbumHandler);
     $('.searchAlbumButton').live('click', searchAlbumHandler);
-    
+
     $('span.shopAlbumSearchLink').live('click', searchForShopAlbum);
-    
+
     /* Initialize playlists */
     $('div#switchBrowseMode').children('div').click(switchBrowseModeHandler);
     initializePlaylistTree();
@@ -571,10 +571,10 @@ function searchCallback(results) {
                 url : '/hello/treeBrowseAJAX'
             }
         },
-        callback : { 
+        callback : {
             // Make sure static is not used once the tree has loaded for the first time
-            onload : function (t) { 
-                t.settings.data.opts.static = false; 
+            onload : function (t) {
+                t.settings.data.opts.static = false;
             },
             // Take care of refresh calls - n will be false only when the whole tree is refreshed or loaded of the first time
             beforedata : function (n, t) {
@@ -920,7 +920,7 @@ function populateArtistNavCallback(data) {
         populateArtistNav(data['mbid']);
     }
 }
-    
+
 function populateArtistNav(artistMbid) {
     $.getJSON(
         '/hello/getArtistImagesAJAX',
@@ -1104,11 +1104,11 @@ function populateArtistBrowserAlbumsRelationships(data) {
             otherCount++;
             checkbox = $('#otherCheckbox');
         }
-        
+
         if (!checkbox.is(':checked')) {
             e.hide();
         }
-        
+
         var buttons = $('<span>').addClass('albumButtons');
         if (album['local']) {
             e.addClass('bold');
@@ -1117,7 +1117,7 @@ function populateArtistBrowserAlbumsRelationships(data) {
         } else {
             buttons.append($('<span>').addClass('ui-icon ui-icon-search searchAlbumButton'));
         }
-        
+
         e.append(buttons);
         $('#artistBrowserAlbumList').append(e);
     }
@@ -1246,7 +1246,7 @@ function refreshShopStatus() {
 function showShopStatuses(data) {
 
     var downloads = data['downloads'];
-    
+
     $('div#shopDownloading').empty();
     for (var i=0; i<downloads.length; i++) {
         var album = downloads[i];
@@ -1261,7 +1261,7 @@ function showShopStatuses(data) {
                           .data('mbid', album['mbid']);
         $('div#shopDownloading').append(e);
     }
-    
+
     var done = data['done'];
     $('div#shopDone').empty();
     for (var i=0; i<done.length; i++) {
@@ -1279,7 +1279,7 @@ function showShopStatuses(data) {
                           .data('mbid', album['mbid']);
         $('div#shopDone').append(e);
     }
-    
+
     setTimeout(refreshShopStatus, 10000);
 }
 
@@ -1298,18 +1298,18 @@ function switchBrowseModeHandler() {
 
 function initializePlaylistTree() {
     $('#playlistBrowser').tree({
-        data : { 
+        data : {
             async : true,
             type : 'json',
             opts : {
                 url : '/hello/playlistBrowseAJAX'
             }
         },
-        callback : { 
+        callback : {
             beforedata : function (n, t) {
                 return { id : $(n).attr("id") || 'init' };
             }
-            
+
         },
         ui : {
             theme_name : 'default'
@@ -1360,7 +1360,7 @@ function reinitializePlaylistTree() {
         : this;
     });
   }
- 
+
   $.shuffle = function(arr) {
     for(
       var j, x, i = arr.length; i;

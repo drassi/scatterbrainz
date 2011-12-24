@@ -11,7 +11,7 @@ python setup.py develop
 easy_install repoze.what-quickstart
 easy_install repoze.what-pylons
 easy_install mutagen
-apt-get install python-dev 
+apt-get install python-dev
 easy_install psycopg2
 apt-get install libxslt1-dev
 pip install lxml

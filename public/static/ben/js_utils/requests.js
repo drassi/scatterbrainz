@@ -8,7 +8,7 @@ function makeRequest(url, parameters) {
             //http_request.overrideMimeType('text/xml');
             http_request.overrideMimeType('text/html');
         }
-    } 
+    }
     if (!http_request) {
         alert('Cannot create XMLHTTP instance');
         return false;
@@ -16,7 +16,7 @@ function makeRequest(url, parameters) {
     http_request.onreadystatechange = alertContents;
     http_request.open('GET', url + parameters, true);
     http_request.send(null);
-    //this is not at all efficient as it pauses all 
+    //this is not at all efficient as it pauses all
 
 }
 function alertContents() {
@@ -24,7 +24,7 @@ function alertContents() {
         if (http_request.status == 200) {
             //alert(http_request.responseText);
             result = http_request.responseText;
-            document.getElementById('myspan').innerHTML =  result;            
+            document.getElementById('myspan').innerHTML =  result;
         } else {
             alert('There was a problem with the request');
         }

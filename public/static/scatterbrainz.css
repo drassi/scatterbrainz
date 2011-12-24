@@ -290,12 +290,12 @@ div#dashboard {
 /**
  * jplayer shit
  */
- 
+
 #player_container {
 	position:relative;
 	padding:5px;
 }
- 
+
 ul#icons {margin: 0; padding: 0;}
 ul#icons li {margin: 2px; position: relative; padding: 4px 0; cursor: pointer; float: left;  list-style: none;}
 ul#icons span.ui-icon {float: left; margin: 0 4px;}
@@ -303,7 +303,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 ul#icons #volume-min {
 	margin:2px 140px 2px 364px;
 }*/
- 
+
 #sliderVolume {
     width: 150px;
     height: .4em;
@@ -315,17 +315,17 @@ ul#icons #volume-min {
     height:.8em;
     width:.8em;
 }
- 
+
 #bars_holder {
     width: 150px;
     margin-left: 10px;
     margin-top: 4px;
 }
- 
+
 #sliderPlayback .ui-slider-handle {
     height:1.2em;
 }
- 
+
 #loaderBar.ui-progressbar {
     height:.2em;
     border:0;
@@ -343,7 +343,7 @@ ul#icons #volume-min {
 #abrepeat {
     zoom: 0.8;
 }
-    
+
 #abrepeat .ui-button-text {
     padding: 0.4em 0.7em;
 }
@@ -672,7 +672,7 @@ span.albumButtons span.ui-icon-search {
     left: 45%;
 }
 
-div#artistBrowserAlbumList {   
+div#artistBrowserAlbumList {
     overflow-y: auto;
 }
 

@@ -18,7 +18,7 @@
 		.wide, .thin { clear:both; }
 		img{ float: left; padding:5px;}
 		blockquote { font-style: italic; margin-left: 10px; border-left:2px solid #EFEFEF; padding-left: 8px;}
-		
+
 	</style>
 	<script src="jquery.js" type="text/javascript" charset="utf-8"></script>
 	<script src="autocolumn.js" type="text/javascript" charset="utf-8"></script>
@@ -26,7 +26,7 @@
 		$(function(){
 			$('#hidden-wrapper a').click(function(){ alert("boo!"); });
 			$('#hidden-wrapper').columnize({
-				columns:4, 
+				columns:4,
 				target: "#target",
 				doneFunc: function(){
 					$('.first.column').css("color", "blue");

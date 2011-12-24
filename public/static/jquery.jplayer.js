@@ -27,11 +27,11 @@
 	// Adapted from ui.core.js (1.7.2) $.widget() "create plugin method"
 	// $.data() info at http://docs.jquery.com/Internals/jQuery.data
 	$.fn.jPlayer = function(options) {
-		
+
 		var name = "jPlayer";
 		var isMethodCall = (typeof options == 'string');
 		var args = Array.prototype.slice.call(arguments, 1);
-		
+
 		// prevent calls to internal methods
 		if (isMethodCall && options.substring(0, 1) == '_') {
 			return this;
@@ -57,14 +57,14 @@
 				instance[options].apply(instance, args));
 		});
 	};
-	
+
 	$.jPlayer = function(element, options) {
 		this.options = $.extend({}, options);
 		this.element = $(element);
 	};
-	
+
 	$.jPlayer.getter = "jPlayerOnProgressChange jPlayerOnSoundComplete jPlayerVolume jPlayerReady getData jPlayerController";
-	
+
 	$.jPlayer.defaults = {
 		cssPrefix: "jqjp",
 		swfPath: "js",
@@ -115,7 +115,7 @@
 		volumeBar: "jplayer_volume_bar",
 		volumeBarValue: "jplayer_volume_bar_value"
 	};
-	
+
 	$.jPlayer.count = 0;
 
 	$.jPlayer.timeFormat = {
@@ -129,7 +129,7 @@
 		sepMin: ":",
 		sepSec: ""
 	};
-	
+
 	$.jPlayer.convertTime = function(mSec) {
 		var myTime = new Date(mSec);
 		var hour = myTime.getUTCHours();
@@ -140,19 +140,19 @@
 		var strSec = ($.jPlayer.timeFormat.padSec && sec < 10) ? "0" + sec : sec;
 		return (($.jPlayer.timeFormat.showHour) ? strHour + $.jPlayer.timeFormat.sepHour : "") + (($.jPlayer.timeFormat.showMin) ? strMin + $.jPlayer.timeFormat.sepMin : "") + (($.jPlayer.timeFormat.showSec) ? strSec + $.jPlayer.timeFormat.sepSec : "");
 	};
-	
+
 	$.jPlayer.prototype = {
 		_init: function() {
 			var self = this;
 			var element = this.element;
-			
+
 			this.config = $.extend({}, $.jPlayer.defaults, this.options, $.jPlayer._config);
 			this.config.diag = $.extend({}, $.jPlayer._diag);
 			this.config.cssId = {};
 			this.config.cssSelector = {};
 			this.config.cssDisplay = {};
 			this.config.clickHandler = {};
-			
+
 			this.element.data("jPlayer.config", this.config);
 
 			$.extend(this.config, {
@@ -174,7 +174,7 @@
 					this._warning("Constructor's ready option is not a function.");
 				}
 			}
-			
+
 			try {
 				this.config.audio = new Audio();
 				this.config.audio.id = this.config.aid;
@@ -182,7 +182,7 @@
 			} catch(err) {
 				this.config.audio = {};
 			}
-			
+
 			$.extend(this.config, {
 				canPlayMP3: !!((this.config.audio.canPlayType) ? (("" != this.config.audio.canPlayType("audio/mpeg")) && ("no" != this.config.audio.canPlayType("audio/mpeg"))) : false),
 				canPlayOGG: !!((this.config.audio.canPlayType) ? (("" != this.config.audio.canPlayType("audio/ogg")) && ("no" != this.config.audio.canPlayType("audio/ogg"))) : false),
@@ -213,7 +213,7 @@
 					if(playing) {
 						self.config.isWaitingForPlay = false;
 					}
-					
+
 				}
 			};
 
@@ -284,7 +284,7 @@
 					self.config.aSel = $("#"+self.config.aid);
 					if(self.config.usingMP3) {
 						self.config.diag.src = mp3;
-					} else { 
+					} else {
 						self.config.diag.src = ogg;
 					}
 					self.config.isWaitingForPlay = true;
@@ -382,7 +382,7 @@
 			} else {
 				$.extend(events, eventsForHtmlAudio);
 			}
-			
+
 			for(var event in events) {
 				var e = "jPlayer." + event;
 				this.element.unbind(e);
@@ -398,14 +398,14 @@
 						html_obj += ' type="application/x-shockwave-flash"';
 						html_obj += ' width="' + this.config.width + '" height="' + this.config.height + '">';
 						html_obj += '</object>';
-			
+
 						var obj_param = new Array();
 						obj_param[0] = '<param name="movie" value="' + this.config.swf + '" />';
 						obj_param[1] = '<param name="quality" value="high" />';
 						obj_param[2] = '<param name="FlashVars" value="id=' + escape(this.config.id) + '&fid=' + escape(this.config.fid) + '&vol=' + this.config.volume + '" />';
 						obj_param[3] = '<param name="allowScriptAccess" value="always" />';
 						obj_param[4] = '<param name="bgcolor" value="' + this.config.bgcolor + '" />';
-				
+
 						var ie_dom = document.createElement(html_obj);
 						for(var i=0; i < obj_param.length; i++) {
 							ie_dom.appendChild(document.createElement(obj_param[i]));
@@ -419,18 +419,18 @@
 						html_embed += ' type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />';
 						this.element.html(html_embed);
 					}
-			
+
 				} else {
 					this.element.html("<p>Flash 8 or above is not installed. <a href='http://get.adobe.com/flashplayer'>Get Flash!</a></p>");
 				}
 			}
 
 			this.element.css({'position':this.config.position, 'top':this.config.top, 'left':this.config.left});
-			
+
 			if(this.config.graphicsFix) {
 				var html_hidden = '<div id="' + this.config.hid + '"></div>';
 				this.element.append(html_hidden);
-			
+
 				$.extend(this.config, {
 					hSel: $("#"+this.config.hid)
 				});
@@ -576,7 +576,7 @@
 			} else if(!this.config.diag.isPlaying && lp >= 100) {
 				clearInterval(this.config.jPlayerControllerId);
 			}
-			
+
 			if(override) {
 				this.jPlayerOnProgressChange(lp, 0, 0, 0, tt);
 			} else {
@@ -648,7 +648,7 @@
 					flashIsInstalled = true;
 				}
 				catch(e){
-					// Throws an error if the version isn't available			
+					// Throws an error if the version isn't available
 				}
 			}
 			else if(navigator.plugins && navigator.mimeTypes.length > 0){
