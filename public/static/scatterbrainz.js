@@ -30,7 +30,9 @@ $(document).ready(function(){
     
     $('li[rel=Playlist]').livequery(onTreeNodeCreate);
     $('li[rel=Album]').livequery(onTreeNodeCreate);
-    
+    treeNodeCreateEvent = document.createEvent('Event');
+    treeNodeCreateEvent.initEvent('treeNodeCreateEvent', true, true);
+ 
     $('#browser').tree({
         data : { 
             async : true,
@@ -42,6 +44,10 @@ $(document).ready(function(){
         callback : { 
             beforedata : function (n, t) {
                 return { id : $(n).attr("id") || 'init' };
+            },
+            onrgtclk : function (a, b, c) {
+                $('#treeContextMenu').css({'left': c.pageX - 11, 'top': c.pageY - 11}).show();
+                return false;
             }
         },
         ui : {
@@ -436,6 +442,8 @@ $(document).ready(function(){
     endPlayEvent = document.createEvent('Event');
     endPlayEvent.initEvent('endPlayEvent', true, true);
 
+    $('#treeContextMenu').hover(function() { }, function() { $(this).hide(); });
+
 });
 
 function switchWindow(self, runCallback) {
@@ -629,6 +637,7 @@ function onTreeNodeCreate() {
     } else if (self.attr('rel') == 'Album') {
         self.prepend($('<span>').addClass('albumYear').text(self.attr('year')));
     }
+    document.dispatchEvent(treeNodeCreateEvent);
 }
 
 function onPlaylistTreeLoad(thing, node) {
@@ -650,6 +659,7 @@ String.prototype.trim = function() {
     return this.replace(/^\s+|\s+$/g,"");
 }
 
+
 function playRow(row) {
     scrobbleEnd();
     $('.playing').removeClass('playing');
@@ -669,7 +679,6 @@ function playRow(row) {
     $('#scrobbleDuration').text(duration);
     document.dispatchEvent(startPlayEvent);
 }
-
 function scrobbleEnd() {
     if ($('.playing').length) {
         document.dispatchEvent(endPlayEvent);
