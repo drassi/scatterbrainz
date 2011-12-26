@@ -588,7 +588,8 @@ function searchCallback(results) {
             beforedata : function (n, t) {
                 if(n == false) t.settings.data.opts.static = results;
                 return { id : $(n).attr("id") || 'init' };
-            }
+            },
+            onrgtclk : rightClickTreeNode
         },
         ui : {
             theme_name : 'default'
