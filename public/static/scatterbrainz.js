@@ -33,6 +33,9 @@ $(document).ready(function(){
     treeNodeCreateEvent = document.createEvent('Event');
     treeNodeCreateEvent.initEvent('treeNodeCreateEvent', true, true);
  
+    treeNodeClickEvent = document.createEvent('Event');
+    treeNodeClickEvent.initEvent('treeNodeClickEvent', true, true);
+ 
     $('#browser').tree({
         data : { 
             async : true,
@@ -45,10 +48,7 @@ $(document).ready(function(){
             beforedata : function (n, t) {
                 return { id : $(n).attr("id") || 'init' };
             },
-            onrgtclk : function (a, b, c) {
-                $('#treeContextMenu').css({'left': c.pageX - 11, 'top': c.pageY - 11}).show();
-                return false;
-            }
+            onrgtclk : rightClickTreeNode
         },
         ui : {
             theme_name : 'default'
@@ -443,7 +443,7 @@ $(document).ready(function(){
     endPlayEvent.initEvent('endPlayEvent', true, true);
 
     $('#treeContextMenu').hover(function() { }, function() { $(this).hide(); });
-
+    $('#treeDownloadLink').click(treeDownloadLinkClick);
 });
 
 function switchWindow(self, runCallback) {
@@ -1360,6 +1360,28 @@ function reinitializePlaylistTree() {
     initializePlaylistTree();
 }
 
+function rightClickTreeNode(a, b, c) {
+    var node = $(a);
+    var menu = $('#treeContextMenu');
+    var show = false;
+    if (node.attr('rel') == 'Album') {
+        var mbid = node.attr('id').split('_')[1];
+        menu.data('href', '/filedownload/album?mbid=' + mbid);
+        show = true;
+    } else if (node.attr('rel') == 'Track') {
+        
+    }
+    if (show) {
+    	menu.css({'left': c.pageX - 11, 'top': c.pageY - 11}).show();
+    }
+    return false;
+}
+
+function treeDownloadLinkClick() {
+    window.location.href = $('#treeContextMenu').data('href');
+    $('#treeContextMenu').hide();
+}
+
 (function($){
   $.fn.shuffle = function() {
     return this.each(function(){
@@ -1379,4 +1401,3 @@ function reinitializePlaylistTree() {
     return arr;
   }
 })(jQuery);
-

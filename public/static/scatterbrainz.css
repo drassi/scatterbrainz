@@ -802,3 +802,15 @@ span#ajaxProgress {
     margin-right: 20px;
 }
 
+div#treeDownloadLink {
+    width: 80px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 2px solid #B0CDFF;
+    padding: 2px;
+}
+
+div#treeDownloadLink:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+

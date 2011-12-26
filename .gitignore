@@ -2,6 +2,7 @@
 *.pyc
 public/art
 public/music
+public/export
 external/.DS_Store
 config/config.py
 
