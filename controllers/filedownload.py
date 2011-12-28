@@ -32,7 +32,7 @@ class FiledownloadController(BaseController):
         multidisc = max([track.discnum for track in tracks]) > 1
         for track in tracks:
             realpath = Config.MUSIC_PATH + track.file.filepath
-            filename = '%02d. %s' % (track.tracknum, track.name)
+            filename = '%02d. %s.mp3' % (track.tracknum, track.name)
             if multidisc:
                 filename = track.disc + '-' + filename
             z.write(realpath, filename)
