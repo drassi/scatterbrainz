@@ -171,7 +171,12 @@
 
 <div id="shopContainer" class="hidden transparent window">
     <div id="shopSearch">
-        <img width="90%" src="http://i.imgur.com/yst4V.jpg" />
+        <form id="shopSearchForm">
+            Artist: <input id="shopSearchArtist" type="text" />
+            Album: <input id="shopSearchAlbum" type="text" />
+            <input type="submit" value="Search">
+            <span id="shopSearchStatus"></span>
+        </form>
     </div>
     <div id="shopSearchResults"></div>
     <span id="shopDownloadingLabel">In Progress</span>
