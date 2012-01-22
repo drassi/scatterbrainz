@@ -5,6 +5,7 @@ import logging
 import unicodedata
 
 from datetime import datetime, timedelta
+from urllib2 import HTTPError
 
 from scatterbrainz.model.albumart import AlbumArt
 from scatterbrainz.model.albumartattempt import AlbumArtAttempt
@@ -50,8 +51,15 @@ def get_art(Session, album):
                 url = site + '/covers.php?%s' % urllib.urlencode(params)
                 
                 log.info('[art] Hitting ' + url)
-                html = urllib2.urlopen(url).read()
                 
+                req = urllib2.Request(url)
+                req.add_header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.75 Safari/535.7")
+                req.add_header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                req.add_header("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.3")
+                req.add_header("Accept-Encoding", "gzip,deflate,sdch")
+                req.add_header("Accept-Language", "en-US,en;q=0.8")
+                req.add_header("Connection", "keep-alive")
+                html = urllib2.urlopen(req).read()
                 if html.find('id="captcha"') != -1:
                     capurl = 'http://www.albumartexchange.com/captcha.php'
                     log.info('[art] captcha needed, hitting ' + capurl + ' for captcha')
@@ -98,6 +106,8 @@ def get_art(Session, album):
                     else:
                         Session.add(AlbumArtAttempt(albumMbid, now))
             except Exception, e:
+                if isinstance(e, HTTPError) and e.code==403 and 'BlockScript' in e.read():
+                    log.info('[art] got blocked..')
                 if albumArtAttempt:
                     albumArtAttempt.tried = now
                     albumArtAttempt.error = e.__repr__()

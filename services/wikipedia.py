@@ -14,11 +14,11 @@ of the wikipedia article at the given URL, with:
 """
 def get_summary(url):
     req = urllib2.Request(url)
-    req.add_header("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.11 Safari/534.10")
+    req.add_header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.75 Safari/535.7")
     log.info('[wiki] hitting ' + url)
     handle = urllib2.urlopen(req)
     page = lxml.parse(handle).getroot()
-    bodyContent = page.cssselect('#bodyContent')[0]
+    bodyContent = page.cssselect('#bodyContent div.mw-content-ltr')[0]
     bodyContent.make_links_absolute()
     for a in bodyContent.cssselect('a'):
         a.attrib['target'] = '_blank'
