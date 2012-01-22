@@ -12,6 +12,19 @@ from scatterbrainz.model.albumartattempt import AlbumArtAttempt
 
 log = logging.getLogger(__name__)
 
+UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.75 Safari/535.7'
+
+def add_headers(req, accept=None):
+    req.add_header("User-Agent", UA)
+    if accept:
+        req.add_header("Accept", accept)
+    else:
+        req.add_header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+    req.add_header("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.3")
+    req.add_header("Accept-Encoding", "gzip,deflate,sdch")
+    req.add_header("Accept-Language", "en-US,en;q=0.8")
+    req.add_header("Connection", "keep-alive")
+
 def get_art(Session, album):
     albumMbid = album.mbid
     albumart = Session.query(AlbumArt).filter_by(mbid=albumMbid).first()
@@ -51,25 +64,24 @@ def get_art(Session, album):
                 url = site + '/covers.php?%s' % urllib.urlencode(params)
                 
                 log.info('[art] Hitting ' + url)
+               
+                cookiemonster = urllib2.HTTPCookieProcessor()
+                opener = urllib2.build_opener(cookiemonster)
+                opener.addheaders = [('User-agent', UA)] 
                 
                 req = urllib2.Request(url)
-                req.add_header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.75 Safari/535.7")
-                req.add_header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                req.add_header("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.3")
-                req.add_header("Accept-Encoding", "gzip,deflate,sdch")
-                req.add_header("Accept-Language", "en-US,en;q=0.8")
-                req.add_header("Connection", "keep-alive")
-                html = urllib2.urlopen(req).read()
+                add_headers(req)
+                html = opener.open(req).read()
                 if html.find('id="captcha"') != -1:
                     capurl = 'http://www.albumartexchange.com/captcha.php'
                     log.info('[art] captcha needed, hitting ' + capurl + ' for captcha')
-                    cookiemonster = urllib2.HTTPCookieProcessor()
-                    opener = urllib2.build_opener(cookiemonster)
-                    opener.open(capurl)
+                    capreq = urllib2.Request(capurl)
+                    add_headers(capreq)
+                    opener.open(capreq)
                     captcha = cookiemonster.cookiejar._cookies['www.albumartexchange.com']['/']['security_code'].value
                     log.info('[art] found captcha ' + captcha)
                     postdata = urllib.urlencode({'captcha':captcha})
-                    html = opener.open(url, postdata).read()
+                    html = opener.open(req, postdata).read()
                     if html.find('id="captcha"') == -1:
                         log.info('[art] captcha success')
                     else:
@@ -92,7 +104,7 @@ def get_art(Session, album):
                             if not numResultsSearch:
                                 raise Exception('couldnt find numResults!')
                             numResults = int(numResultsSearch.group('numResults'))
-                        albumArtFilename = _fetchAlbumArt(artistName, albumName, albumArtURL)
+                        albumArtFilename = _fetchAlbumArt(artistName, albumName, albumArtURL, url, opener)
                     else:
                         raise Exception('Didnt find message for no images, but couldnt locate one')
                 if albumArtFilename:
@@ -115,15 +127,27 @@ def get_art(Session, album):
                     Session.add(AlbumArtAttempt(albumMbid, now, e.__repr__()))
             Session.commit()
         return albumArtFilename
-        
 
-def _fetchAlbumArt(artist, album, url):
+def _fetchAlbumArt(artist, album, url, referer, opener):
     extension = url.rsplit('.', 1)[1]
     delchars = ''.join(c for c in map(chr, range(256)) if not c.isalnum())
     delchars = delchars.translate(None," ()'&!-+_.")
     filename = (artist + ' - ' + album).encode('utf-8').translate(None, delchars) + '.' + extension
     filepath = '/media/data/albumart/' + filename
     log.info('[art] Saving ' + url + ' to ' + filepath)
-    urllib.urlretrieve(url, filepath)
+    req = urllib2.Request(url)
+    add_headers(req, accept='*/*')
+    req.add_header("Referer", referer)
+    img = opener.open(req)
+    ctype = img.info().getheader('Content-Type')
+    if ctype != 'image/jpeg' and ctype != 'image/jpg':
+        log.info('[art] problem: got image response type of ' + ctype)
+        raise Exception('got response type ' + ctype)
+    CHUNK = 16 * 1024
+    with open(filepath, 'wb') as fp:
+        while True:
+            chunk = img.read(CHUNK)
+            if not chunk: break
+            fp.write(chunk)
     return unicode('/art/' + filename)
 
