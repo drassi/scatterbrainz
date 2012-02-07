@@ -163,7 +163,7 @@ def download(Session, mbid, owner_id):
             downloads = []
             for download in ttable.cssselect('tr.group_torrent[id]'):
                 torrentid = re.sub('^torrent', '', download.attrib['id'])
-                torrenttype = download.cssselect('a[onclick]')[0].text.encode('ascii', 'ignore').split('/')[0].strip()
+                torrenttype = download.cssselect('td > a[onclick]')[0].text.encode('ascii', 'ignore').split('/')[0].strip()
                 if torrenttype != 'MP3':
                     continue
                 downloadurl = download.cssselect('a[title=Download]')[0].attrib['href']
