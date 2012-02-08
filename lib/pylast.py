@@ -787,8 +787,8 @@ class _Request(object):
         data = '&'.join(data)
         return data
 
-    import oboe
-    @oboe.log_method('asdf', agent='remote_request', backtrace=True, callback=_logCallback)
+#    import oboe
+#    @oboe.log_method('asdf', agent='remote_request', backtrace=True, callback=_logCallback)
     def _download_response(self):
         """Returns a response body string from the server."""
         
